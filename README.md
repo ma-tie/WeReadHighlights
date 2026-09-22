@@ -104,9 +104,13 @@ Scriptable 是一个可以用 JavaScript 创建 iOS 小组件 的应用，本项
 
 前往 **[微信读书 Skills API Key 获取页面](https://weread.qq.com/r/weread-skills)**，获取一个以 <code>wrk-</code> 开头的 API Key。
 
-首次运行脚本时，WeReadHighlights 会弹窗要求输入 API Key，并将它保存到 iOS Keychain 中。
+首次运行脚本时，WeReadHighlights 会弹窗要求输入 API Key，并将它保存到设备本地的 **iOS Keychain** 中。API Key 不会被写入脚本源码，也不会随着本项目提交到 GitHub。
 
-**不要把自己的 API Key 提交到 GitHub，也不要分享给其他人。**
+WeReadHighlights 仅在调用微信读书官方接口时读取并使用该凭据，项目代码不会主动将 API Key 上传到其他第三方服务器。你的 userVid 和当前摘录缓存也保存在本机运行环境中。
+
+> 🔐 **隐私说明**
+>
+> API Key 本质上属于个人访问凭据，请不要截图公开、提交到 GitHub 或分享给其他人。如果怀疑 API Key 已经泄露，建议及时更换。
 
 > 📷 **截图待补充：获取 / 填写 API Key**
 >
