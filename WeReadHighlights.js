@@ -4,7 +4,8 @@
 // - 按可配置周期随机展示一条自己的微信读书划线
 // - 不同刷新时段独立、有放回抽样
 // - 同一刷新时段使用缓存，避免 Widget 刷新时改变
-// - 点击 Widget 可精确跳回对应原文
+// - 点击小组件可精确跳回对应原文
+// - 支持 Small / Medium / Large 三种主屏小组件布局
 // ======================================================
 
 const API_URL = "https://i.weread.qq.com/api/agent/gateway";
@@ -547,16 +548,148 @@ async function fetchQuote() {
 
 
 // ======================================================
+// 小组件布局
+//
+// Small  : 312 × 312
+// Medium : 660 × 312（保持原有布局）
+// Large  : 660 × 690
+// ======================================================
+
+function getWidgetLayout(family) {
+  if (family === "small") {
+    return {
+      width: 312,
+      height: 312,
+
+      accentX: 18,
+      accentY: 20,
+      accentWidth: 5,
+      accentHeight: 272,
+
+      quoteMarkX: 29,
+      quoteMarkY: 92,
+      quoteMarkSize: 104,
+
+      bodyX: 44,
+      bodyTop: 62,
+      bodyFontSize: 28,
+      bodyLineHeight: 39,
+      bodyMaxWidth: 240,
+      bodyMaxLines: 4,
+      bodyCenterStep: 12,
+
+      dividerX: 44,
+      dividerY: 244,
+      dividerWidth: 240,
+
+      sourceRightX: 284,
+      sourceY: 278,
+      sourceTitleFontSize: 18,
+      sourceAuthorFontSize: 0,
+      sourceMaxWidth: 235,
+      sourceAuthorMaxWidth: 0,
+      showAuthor: false
+    };
+  }
+
+  if (family === "large") {
+    return {
+      width: 660,
+      height: 690,
+
+      accentX: 25,
+      accentY: 34,
+      accentWidth: 6,
+      accentHeight: 622,
+
+      quoteMarkX: 39,
+      quoteMarkY: 128,
+      quoteMarkSize: 136,
+
+      bodyX: 60,
+      bodyTop: 94,
+      bodyFontSize: 36,
+      bodyLineHeight: 52,
+      bodyMaxWidth: 540,
+      bodyMaxLines: 9,
+      bodyCenterStep: 8,
+
+      dividerX: 60,
+      dividerY: 610,
+      dividerWidth: 542,
+
+      sourceRightX: 602,
+      sourceY: 654,
+      sourceTitleFontSize: 24,
+      sourceAuthorFontSize: 17,
+      sourceMaxWidth: 530,
+      sourceAuthorMaxWidth: 235,
+      showAuthor: true
+    };
+  }
+
+  // Medium：保持当前已经确认过的样式。
+  return {
+    width: 660,
+    height: 312,
+
+    accentX: 25,
+    accentY: 27,
+    accentWidth: 6,
+    accentHeight: 258,
+
+    quoteMarkX: 39,
+    quoteMarkY: 111,
+    quoteMarkSize: 125,
+
+    bodyX: 60,
+    bodyTop: 66,
+    bodyFontSize: 33,
+    bodyLineHeight: 46,
+    bodyMaxWidth: 535,
+    bodyMaxLines: 4,
+    bodyCenterStep: 18,
+
+    dividerX: 60,
+    dividerY: 241,
+    dividerWidth: 542,
+
+    sourceRightX: 602,
+    sourceY: 280,
+    sourceTitleFontSize: 21,
+    sourceAuthorFontSize: 15,
+    sourceMaxWidth: 510,
+    sourceAuthorMaxWidth: 210,
+    showAuthor: true
+  };
+}
+
+
+// ======================================================
 // Canvas 卡片
 // ======================================================
 
-async function renderQuoteCard(data) {
-  const W = 660;
-  const H = 312;
+async function renderQuoteCard(
+  data,
+  family
+) {
+  const layout =
+    getWidgetLayout(family);
 
-  const quote = String(data.quote);
-  const title = String(data.title);
-  const author = String(data.author || "");
+  const W =
+    layout.width;
+
+  const H =
+    layout.height;
+
+  const quote =
+    String(data.quote);
+
+  const title =
+    String(data.title);
+
+  const author =
+    String(data.author || "");
 
   const html = [
     "<!DOCTYPE html>",
@@ -574,6 +707,10 @@ async function renderQuoteCard(data) {
     'const canvas = document.getElementById("card");',
     'const ctx = canvas.getContext("2d");',
 
+    "const layout = " +
+      JSON.stringify(layout) +
+      ";",
+
     "// 背景",
     "const bg = ctx.createLinearGradient(0, 0, " + W + ", " + H + ");",
     'bg.addColorStop(0, "#F9FDFF");',
@@ -582,31 +719,44 @@ async function renderQuoteCard(data) {
     "ctx.fillRect(0, 0, " + W + ", " + H + ");",
 
     "// 左侧蓝色装饰线",
-    "const accent = ctx.createLinearGradient(0, 27, 0, 285);",
+    "const accent = ctx.createLinearGradient(" +
+      "0, layout.accentY, 0, layout.accentY + layout.accentHeight);",
     'accent.addColorStop(0, "#31A7F4");',
     'accent.addColorStop(1, "#79CDFF");',
     "ctx.fillStyle = accent;",
     "ctx.beginPath();",
-    "ctx.roundRect(25, 27, 6, 258, 3);",
+    "ctx.roundRect(" +
+      "layout.accentX, " +
+      "layout.accentY, " +
+      "layout.accentWidth, " +
+      "layout.accentHeight, 3);",
     "ctx.fill();",
 
     "// 背景大引号",
     'ctx.fillStyle = "rgba(49,167,244,0.10)";',
-    'ctx.font = "125px Georgia, serif";',
-    'ctx.fillText("“", 39, 111);',
+    'ctx.font = layout.quoteMarkSize + "px Georgia, serif";',
+    'ctx.fillText("“", layout.quoteMarkX, layout.quoteMarkY);',
 
     "// 正文",
-    "const quote = " + JSON.stringify(quote) + ";",
+    "const quote = " +
+      JSON.stringify(quote) +
+      ";",
+
     'ctx.fillStyle = "#263A48";',
-    'ctx.font = \'33px "Kaiti SC", "STKaiti", "KaiTi", serif\';',
-    "const maxWidth = 535;",
-    "const lineHeight = 46;",
+
+    'ctx.font = ' +
+      'layout.bodyFontSize + ' +
+      ''px "Kaiti SC", "STKaiti", "KaiTi", serif';',
+
     "let lines = [];",
     'let currentLine = "";',
 
     "for (const char of quote) {",
     "  const candidate = currentLine + char;",
-    "  if (ctx.measureText(candidate).width > maxWidth && currentLine.length > 0) {",
+    "  if (" +
+      "ctx.measureText(candidate).width > layout.bodyMaxWidth && " +
+      "currentLine.length > 0" +
+    ") {",
     "    lines.push(currentLine);",
     "    currentLine = char;",
     "  } else {",
@@ -619,51 +769,93 @@ async function renderQuoteCard(data) {
     "}",
 
     "const originalLineCount = lines.length;",
-    "lines = lines.slice(0, 4);",
+    "lines = lines.slice(0, layout.bodyMaxLines);",
 
-    "if (originalLineCount > 4) {",
-    "  let last = lines[3];",
-    '  while (last.length > 0 && ctx.measureText(last + "…").width > maxWidth) {',
+    "if (originalLineCount > layout.bodyMaxLines) {",
+    "  const lastIndex = lines.length - 1;",
+    "  let last = lines[lastIndex];",
+
+    '  while (' +
+      'last.length > 0 && ' +
+      'ctx.measureText(last + "…").width > layout.bodyMaxWidth' +
+    ') {',
     "    last = last.slice(0, -1);",
     "  }",
-    '  lines[3] = last + "…";',
+
+    '  lines[lastIndex] = last + "…";',
     "}",
 
-    "let quoteY = 66 + (4 - lines.length) * 18;",
+    "let quoteY = " +
+      "layout.bodyTop + " +
+      "(layout.bodyMaxLines - lines.length) * layout.bodyCenterStep;",
 
     "for (const line of lines) {",
-    "  ctx.fillText(line, 60, quoteY);",
-    "  quoteY += lineHeight;",
+    "  ctx.fillText(line, layout.bodyX, quoteY);",
+    "  quoteY += layout.bodyLineHeight;",
     "}",
 
     "// 分割线",
     'ctx.fillStyle = "rgba(36,153,229,0.18)";',
-    "ctx.fillRect(60, 241, 542, 1);",
+    "ctx.fillRect(" +
+      "layout.dividerX, " +
+      "layout.dividerY, " +
+      "layout.dividerWidth, 1);",
 
-    "// 来源：书名 + 作者同一行",
-    "const fullTitle = " + JSON.stringify(title) + ";",
-    "const fullAuthor = " + JSON.stringify(author) + ";",
-    "const rightX = 602;",
-    "const sourceY = 280;",
+    "// 来源",
+    "const fullTitle = " +
+      JSON.stringify(title) +
+      ";",
 
-    "let authorDisplay = fullAuthor;",
-    'ctx.font = "15px -apple-system, BlinkMacSystemFont, sans-serif";',
+    "const fullAuthor = " +
+      JSON.stringify(author) +
+      ";",
 
-    'while (authorDisplay.length > 4 && ctx.measureText(" · " + authorDisplay).width > 210) {',
-    '  authorDisplay = authorDisplay.slice(0, -2) + "…";',
+    "let authorDisplay = " +
+      "layout.showAuthor ? fullAuthor : "";",
+
+    "if (layout.showAuthor && authorDisplay) {",
+    '  ctx.font = ' +
+      'layout.sourceAuthorFontSize + ' +
+      '"px -apple-system, BlinkMacSystemFont, sans-serif";',
+
+    '  while (' +
+      'authorDisplay.length > 4 && ' +
+      'ctx.measureText(" · " + authorDisplay).width > ' +
+      'layout.sourceAuthorMaxWidth' +
+    ') {',
+    '    authorDisplay = ' +
+      'authorDisplay.slice(0, -2) + "…";',
+    "  }",
     "}",
 
-    'const authorPart = authorDisplay ? " · " + authorDisplay : "";',
-    "const authorWidth = authorDisplay ? ctx.measureText(authorPart).width : 0;",
+    'const authorPart = ' +
+      'authorDisplay ? " · " + authorDisplay : "";',
 
-    'ctx.font = \'21px "Kaiti SC", "STKaiti", "KaiTi", serif\';',
+    "let authorWidth = 0;",
+
+    "if (authorPart) {",
+    '  ctx.font = ' +
+      'layout.sourceAuthorFontSize + ' +
+      '"px -apple-system, BlinkMacSystemFont, sans-serif";',
+    "  authorWidth = ctx.measureText(authorPart).width;",
+    "}",
+
+    'ctx.font = ' +
+      'layout.sourceTitleFontSize + ' +
+      ''px "Kaiti SC", "STKaiti", "KaiTi", serif';',
 
     "let titleDisplay = fullTitle;",
     'let source = "《" + titleDisplay + "》";',
-    "const maxTitleWidth = 510 - authorWidth;",
 
-    "while (titleDisplay.length > 4 && ctx.measureText(source).width > maxTitleWidth) {",
-    '  titleDisplay = titleDisplay.slice(0, -2) + "…";',
+    "const maxTitleWidth = " +
+      "layout.sourceMaxWidth - authorWidth;",
+
+    "while (" +
+      "titleDisplay.length > 3 && " +
+      "ctx.measureText(source).width > maxTitleWidth" +
+    ") {",
+    '  titleDisplay = ' +
+      'titleDisplay.slice(0, -2) + "…";',
     '  source = "《" + titleDisplay + "》";',
     "}",
 
@@ -671,13 +863,28 @@ async function renderQuoteCard(data) {
 
     "if (authorPart) {",
     '  ctx.fillStyle = "rgba(38,58,72,0.43)";',
-    '  ctx.font = "15px -apple-system, BlinkMacSystemFont, sans-serif";',
-    "  ctx.fillText(authorPart, rightX, sourceY);",
+    '  ctx.font = ' +
+      'layout.sourceAuthorFontSize + ' +
+      '"px -apple-system, BlinkMacSystemFont, sans-serif";',
+    "  ctx.fillText(" +
+      "authorPart, " +
+      "layout.sourceRightX, " +
+      "layout.sourceY" +
+    ");",
     "}",
 
     'ctx.fillStyle = "#257EAF";',
-    'ctx.font = \'21px "Kaiti SC", "STKaiti", "KaiTi", serif\';',
-    "ctx.fillText(source, rightX - authorWidth, sourceY);",
+
+    'ctx.font = ' +
+      'layout.sourceTitleFontSize + ' +
+      ''px "Kaiti SC", "STKaiti", "KaiTi", serif';',
+
+    "ctx.fillText(" +
+      "source, " +
+      "layout.sourceRightX - authorWidth, " +
+      "layout.sourceY" +
+    ");",
+
     'ctx.textAlign = "left";',
 
     "</script>",
@@ -685,15 +892,22 @@ async function renderQuoteCard(data) {
     "</html>"
   ].join("\n");
 
-  const web = new WebView();
-  await web.loadHTML(html);
+  const web =
+    new WebView();
+
+  await web.loadHTML(
+    html
+  );
 
   const dataURL =
     await web.evaluateJavaScript(
       'document.getElementById("card").toDataURL("image/png")'
     );
 
-  if (typeof dataURL !== "string") {
+  if (
+    typeof dataURL !==
+    "string"
+  ) {
     throw new Error(
       "Canvas 没有返回图片数据"
     );
@@ -708,7 +922,9 @@ async function renderQuoteCard(data) {
       : dataURL;
 
   const imageData =
-    Data.fromBase64String(base64);
+    Data.fromBase64String(
+      base64
+    );
 
   if (!imageData) {
     throw new Error(
@@ -716,71 +932,42 @@ async function renderQuoteCard(data) {
     );
   }
 
-  return Image.fromData(imageData);
+  return Image.fromData(
+    imageData
+  );
 }
 
 
 // ======================================================
-// 主屏 Widget
+// 主屏小组件
 // ======================================================
 
-async function createHomeWidget(data) {
-  const widget = new ListWidget();
+async function createHomeWidget(
+  data,
+  family
+) {
+  const widget =
+    new ListWidget();
 
   const image =
-    await renderQuoteCard(data);
+    await renderQuoteCard(
+      data,
+      family
+    );
 
-  widget.backgroundImage = image;
-  widget.setPadding(0, 0, 0, 0);
+  widget.backgroundImage =
+    image;
 
-  if (data.url) {
-    widget.url = data.url;
-  }
-
-  return widget;
-}
-
-
-// ======================================================
-// 锁屏矩形 Widget
-// ======================================================
-
-function createLockWidget(data) {
-  const widget = new ListWidget();
-
-  widget.addAccessoryWidgetBackground =
-    true;
-
-  const quote =
-    widget.addText(data.quote);
-
-  quote.font =
-    Font.systemFont(11);
-
-  quote.lineLimit = 3;
-  quote.minimumScaleFactor = 0.70;
-
-  widget.addSpacer(3);
-
-  let sourceText =
-    "《" + data.title + "》";
-
-  if (data.author) {
-    sourceText +=
-      " · " + data.author;
-  }
-
-  const source =
-    widget.addText(sourceText);
-
-  source.font =
-    Font.systemFont(8);
-
-  source.textOpacity = 0.60;
-  source.lineLimit = 1;
+  widget.setPadding(
+    0,
+    0,
+    0,
+    0
+  );
 
   if (data.url) {
-    widget.url = data.url;
+    widget.url =
+      data.url;
   }
 
   return widget;
@@ -844,16 +1031,24 @@ try {
   const data =
     await fetchQuote();
 
-  if (
-    config.widgetFamily ===
-    "accessoryRectangular"
-  ) {
-    widget =
-      createLockWidget(data);
-  } else {
-    widget =
-      await createHomeWidget(data);
-  }
+  const supportedFamilies = [
+    "small",
+    "medium",
+    "large"
+  ];
+
+  const family =
+    supportedFamilies.includes(
+      config.widgetFamily
+    )
+      ? config.widgetFamily
+      : "medium";
+
+  widget =
+    await createHomeWidget(
+      data,
+      family
+    );
 
   widget.refreshAfterDate =
     nextRefreshTime();
@@ -873,7 +1068,20 @@ try {
 if (config.runsInWidget) {
   Script.setWidget(widget);
 } else {
-  await widget.presentMedium();
+  const family =
+    ["small", "medium", "large"].includes(
+      config.widgetFamily
+    )
+      ? config.widgetFamily
+      : "medium";
+
+  if (family === "small") {
+    await widget.presentSmall();
+  } else if (family === "large") {
+    await widget.presentLarge();
+  } else {
+    await widget.presentMedium();
+  }
 }
 
 Script.complete();
