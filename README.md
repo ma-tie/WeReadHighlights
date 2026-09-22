@@ -92,7 +92,7 @@ iPhone 小组件 展示
 
 ## 1. 安装 Scriptable
 
-在 iPhone App Store 中安装 **Scriptable**。
+在 iPhone App Store 中安装 **[Scriptable](https://apps.apple.com/us/app/scriptable/id1405459188)**。
 
 Scriptable 是一个可以用 JavaScript 创建 iOS 小组件 的应用，本项目的所有逻辑都运行在 Scriptable 中。
 
@@ -106,7 +106,7 @@ Scriptable 是一个可以用 JavaScript 创建 iOS 小组件 的应用，本项
 
 本项目通过腾讯官方 **WeChatReading Skill Gateway** 获取你的书籍与个人划线数据。
 
-获取一个以 <code>wrk-</code> 开头的 API Key。
+前往 **[微信读书 Skills API Key 获取页面](https://weread.qq.com/r/weread-skills)**，获取一个以 <code>wrk-</code> 开头的 API Key。
 
 首次运行脚本时，WeReadHighlights 会弹窗要求输入 API Key，并将它保存到 iOS Keychain 中。
 
