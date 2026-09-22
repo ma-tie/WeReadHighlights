@@ -744,9 +744,7 @@ async function renderQuoteCard(
 
     'ctx.fillStyle = "#263A48";',
 
-    'ctx.font = ' +
-      'layout.bodyFontSize + ' +
-      ''px "Kaiti SC", "STKaiti", "KaiTi", serif';',
+    "ctx.font = layout.bodyFontSize + 'px \"Kaiti SC\", \"STKaiti\", \"KaiTi\", serif';",
 
     "let lines = [];",
     'let currentLine = "";',
@@ -810,8 +808,7 @@ async function renderQuoteCard(
       JSON.stringify(author) +
       ";",
 
-    "let authorDisplay = " +
-      "layout.showAuthor ? fullAuthor : "";",
+    'let authorDisplay = layout.showAuthor ? fullAuthor : "";',
 
     "if (layout.showAuthor && authorDisplay) {",
     '  ctx.font = ' +
@@ -840,9 +837,7 @@ async function renderQuoteCard(
     "  authorWidth = ctx.measureText(authorPart).width;",
     "}",
 
-    'ctx.font = ' +
-      'layout.sourceTitleFontSize + ' +
-      ''px "Kaiti SC", "STKaiti", "KaiTi", serif';',
+    "ctx.font = layout.sourceTitleFontSize + 'px \"Kaiti SC\", \"STKaiti\", \"KaiTi\", serif';",
 
     "let titleDisplay = fullTitle;",
     'let source = "《" + titleDisplay + "》";',
@@ -875,9 +870,7 @@ async function renderQuoteCard(
 
     'ctx.fillStyle = "#257EAF";',
 
-    'ctx.font = ' +
-      'layout.sourceTitleFontSize + ' +
-      ''px "Kaiti SC", "STKaiti", "KaiTi", serif';',
+    "ctx.font = layout.sourceTitleFontSize + 'px \"Kaiti SC\", \"STKaiti\", \"KaiTi\", serif';",
 
     "ctx.fillText(" +
       "source, " +
