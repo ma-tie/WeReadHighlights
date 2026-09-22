@@ -271,10 +271,10 @@ WeReadHighlights/
 ├── .gitignore
 └── docs/
     └── images/
-        ├── widget-preview.jpg
-        ├── create-script.jpg
-        ├── edit-widget.jpg
-        ├── widget-config.jpg
+        ├── widget-preview.webp
+        ├── create-script.webp
+        ├── edit-widget.webp
+        ├── widget-config.webp
         ├── deeplink-demo.gif
         └── setup-api-key.png
 </pre>
