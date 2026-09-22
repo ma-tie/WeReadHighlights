@@ -4,9 +4,9 @@
 
 **把微信读书里曾经划过的句子，重新带回你的 iPhone 桌面。**
 
-随机展示你在微信读书中的个人划线，按设定周期自动更新；点击 Widget，可直接跳回微信读书中的原文位置。
+随机展示你在微信读书中的个人划线，按设定周期自动更新；点击 小组件，可直接跳回微信读书中的原文位置。
 
-![iOS](https://img.shields.io/badge/iOS-Widget-000000?logo=apple&logoColor=white)
+![iOS](https://img.shields.io/badge/iOS-%E5%B0%8F%E7%BB%84%E4%BB%B6-000000?logo=apple&logoColor=white)
 ![Scriptable](https://img.shields.io/badge/Scriptable-JavaScript-2F80ED)
 ![WeRead](https://img.shields.io/badge/微信读书-Highlights-20B875)
 ![License](https://img.shields.io/badge/License-MIT-green)
@@ -17,13 +17,13 @@
 
 ## ✨ 它能做什么？
 
-WeReadHighlights 是一个基于 **Scriptable + 微信读书 Skill API** 的 iPhone Widget。
+WeReadHighlights 是一个基于 **Scriptable + 微信读书 Skill API** 的 iPhone 小组件。
 
 它会从你自己的微信读书划线中随机抽取一条，在桌面或锁屏上展示。刷新周期可以在脚本顶部自行配置，默认每 4 小时更新一次。
 
 最重要的是：**它不只是展示一句摘录。**
 
-点击 Widget 后，会利用划线对应的书籍、章节和文本范围信息，直接跳回微信读书中的原文位置，方便你重新进入上下文继续阅读。
+点击 小组件 后，会利用划线对应的书籍、章节和文本范围信息，直接跳回微信读书中的原文位置，方便你重新进入上下文继续阅读。
 
 > 📷 **效果截图待补充**
 >
@@ -39,24 +39,24 @@ WeReadHighlights 是一个基于 **Scriptable + 微信读书 Skill API** 的 iPh
 | ⏱️ 刷新周期可配置 | 默认 4 小时，可改为 1 / 2 / 3 / 4 / 6 / 8 / 12 / 24 小时 |
 | 🔁 有放回抽样 | 每个新时段独立随机，允许再次抽到以前出现过的句子 |
 | 🧠 尽量全局等概率 | 按每本书的划线数量加权选书，再在书内均匀抽取 |
-| 📖 精确跳回原文 | 点击 Widget 可定位到对应书籍、章节和划线范围 |
+| 📖 精确跳回原文 | 点击 小组件 可定位到对应书籍、章节和划线范围 |
 | 🎨 中文阅读样式 | 浅蓝白背景、楷体正文、背景大引号、书名与作者同一行 |
-| 📱 桌面 + 锁屏 | 支持主屏幕 Medium Widget 与锁屏矩形 Widget |
+| 📱 桌面 + 锁屏 | 支持主屏幕 Medium 小组件 与锁屏矩形 小组件 |
 | 🔐 本地保存凭据 | API Key 与 userVid 使用 iOS Keychain 保存，不写入脚本源码 |
 
 ---
 
 ## 🖼️ 效果展示
 
-### 桌面 Widget
+### 桌面 小组件
 
-> 📷 **截图待补充：桌面 Medium Widget**
+> 📷 **截图待补充：桌面 Medium 小组件**
 >
 > 建议文件名：<code>docs/images/widget-preview.png</code>
 
 ### 点击后跳回原文
 
-> 📷 **截图待补充：点击 Widget 后在微信读书中精确定位划线**
+> 📷 **截图待补充：点击 小组件 后在微信读书中精确定位划线**
 >
 > 建议文件名：<code>docs/images/deeplink-demo.png</code>
 
@@ -75,16 +75,16 @@ WeReadHighlights 是一个基于 **Scriptable + 微信读书 Skill API** 的 iPh
         ↓
 缓存当前刷新时段
         ↓
-iPhone Widget 展示
+iPhone 小组件 展示
         ↓
-点击 Widget
+点击 小组件
         ↓
 跳回微信读书原文
 </pre>
 
 当前实现会先按微信读书返回的 <code>noteCount</code> 对书籍进行加权，再从选中书籍的个人划线中均匀随机一条。这样避免“每本书概率相同”导致划线很少的书被过度抽中。
 
-同一刷新时段内会使用缓存，因此系统多次刷新 Widget 时不会不断换句子。进入下一个时段后重新随机，属于**独立、有放回抽样**。
+同一刷新时段内会使用缓存，因此系统多次刷新 小组件 时不会不断换句子。进入下一个时段后重新随机，属于**独立、有放回抽样**。
 
 ---
 
@@ -94,7 +94,7 @@ iPhone Widget 展示
 
 在 iPhone App Store 中安装 **Scriptable**。
 
-Scriptable 是一个可以用 JavaScript 创建 iOS Widget 的应用，本项目的所有逻辑都运行在 Scriptable 中。
+Scriptable 是一个可以用 JavaScript 创建 iOS 小组件 的应用，本项目的所有逻辑都运行在 Scriptable 中。
 
 > 📷 **截图待补充：Scriptable App**
 >
@@ -136,30 +136,30 @@ Scriptable 是一个可以用 JavaScript 创建 iOS Widget 的应用，本项目
 2. 脚本读取你的微信读书划线；
 3. 自动寻找并保存你的 <code>userVid</code>；
 4. 随机生成第一条摘录；
-5. 显示 Widget 预览。
+5. 显示 小组件 预览。
 
 API Key 和 userVid 都保存在 Keychain 中，之后不需要重复输入。
 
 ---
 
-## 4. 添加桌面 Widget
+## 4. 添加桌面 小组件
 
 在 iPhone 主屏幕长按空白区域：
 
-1. 添加 Widget；
+1. 添加 小组件；
 2. 搜索 **Scriptable**；
 3. 选择 **Medium** 尺寸；
 4. 添加到桌面；
-5. 长按 Widget → 编辑 Widget；
+5. 长按 小组件 → 编辑 小组件；
 6. Script 选择 **WeReadHighlights**。
 
-> 📷 **截图待补充：Scriptable Widget 配置**
+> 📷 **截图待补充：Scriptable 小组件 配置**
 >
 > 建议文件名：<code>docs/images/widget-config.png</code>
 
 ---
 
-## 5. 点击 Widget 回到原文
+## 5. 点击 小组件 回到原文
 
 当抽中的划线包含完整定位信息时，脚本会生成类似：
 
@@ -172,7 +172,7 @@ weread://bestbookmark
   &userVid=...
 </pre>
 
-点击 Widget 后，iOS 会打开微信读书，并定位到对应划线所在的位置。
+点击 小组件 后，iOS 会打开微信读书，并定位到对应划线所在的位置。
 
 如果某条数据缺少精确定位所需字段，脚本会尝试退化为微信读书返回的书籍级 <code>deepLink</code>。
 
@@ -206,15 +206,15 @@ const REFRESH_INTERVAL_HOURS = 2;
 
 表示每天按 2 小时划分刷新时段；进入新的时段后，会重新随机一条划线。
 
-同一个刷新时段内使用缓存，因此即使 iOS 多次刷新 Widget，内容也不会不断变化。
+同一个刷新时段内使用缓存，因此即使 iOS 多次刷新 小组件，内容也不会不断变化。
 
-需要注意：iOS 对 Widget 后台刷新拥有最终调度权。脚本会通过 <code>refreshAfterDate</code> 请求在下一个刷新时段开始后更新，但**实际刷新时间可能被 iOS 延后**。因此配置项控制的是摘录的刷新时段，而不是保证系统在整点精确执行。
+需要注意：iOS 对 小组件 后台刷新拥有最终调度权。脚本会通过 <code>refreshAfterDate</code> 请求在下一个刷新时段开始后更新，但**实际刷新时间可能被 iOS 延后**。因此配置项控制的是摘录的刷新时段，而不是保证系统在整点精确执行。
 
 ---
 
 # 🎨 当前样式
 
-主屏幕 Medium Widget 当前采用：
+主屏幕 Medium 小组件 当前采用：
 
 - 660 × 312 Canvas；
 - 浅蓝 → 白色渐变背景；
@@ -227,7 +227,7 @@ const REFRESH_INTERVAL_HOURS = 2;
 - 底部书名与作者同一行；
 - 点击整张卡片跳回微信读书。
 
-原始划线文本不会因为 Widget 的视觉截断而被修改。
+原始划线文本不会因为 小组件 的视觉截断而被修改。
 
 ---
 
@@ -252,7 +252,7 @@ WeReadHighlights 不要求你把微信读书 API Key 写在代码中。
 
 ### 为什么没有严格按照我配置的周期整点变化？
 
-Widget 后台刷新由 iOS 控制，应用只能请求一个建议刷新时间，不能保证精确执行。
+小组件 后台刷新由 iOS 控制，应用只能请求一个建议刷新时间，不能保证精确执行。
 
 ### 为什么连续两个时段可能出现同一句？
 
@@ -264,7 +264,7 @@ Widget 后台刷新由 iOS 控制，应用只能请求一个建议刷新时间�
 
 ### 为什么正文只显示 4 行？
 
-Medium Widget 空间有限。长划线只在视觉上被截断，点击后仍然会跳到完整原文。
+Medium 小组件 空间有限。长划线只在视觉上被截断，点击后仍然会跳到完整原文。
 
 ### API Key 会不会出现在 GitHub？
 
@@ -312,7 +312,7 @@ WeReadHighlights/
 
 欢迎提交 Issue 或 Pull Request。
 
-如果你有新的 Widget 样式、抽样策略、锁屏布局，或者发现某些书籍无法正确跳转，也欢迎一起完善。
+如果你有新的 小组件 样式、抽样策略、锁屏布局，或者发现某些书籍无法正确跳转，也欢迎一起完善。
 
 ---
 
