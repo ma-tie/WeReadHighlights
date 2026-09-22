@@ -682,9 +682,9 @@ async function renderQuoteCard(
   const H =
     layout.height;
 
-  // 2× Retina 渲染：
+  // 4× Retina 渲染：
   // 逻辑尺寸和布局参数保持不变，只提高底层位图像素密度。
-  const RENDER_SCALE = 2;
+  const RENDER_SCALE = 4;
 
   const quote =
     String(data.quote);
