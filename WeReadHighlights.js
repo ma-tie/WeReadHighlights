@@ -571,12 +571,12 @@ function getWidgetLayout(family) {
       quoteMarkSize: 104,
 
       bodyX: 44,
-      bodyTop: 62,
+      bodyAreaTop: 38,
+      bodyAreaBottom: 228,
       bodyFontSize: 28,
       bodyLineHeight: 39,
       bodyMaxWidth: 240,
       bodyMaxLines: 4,
-      bodyCenterStep: 12,
 
       dividerX: 44,
       dividerY: 244,
@@ -607,12 +607,12 @@ function getWidgetLayout(family) {
       quoteMarkSize: 136,
 
       bodyX: 60,
-      bodyTop: 94,
+      bodyAreaTop: 56,
+      bodyAreaBottom: 584,
       bodyFontSize: 36,
       bodyLineHeight: 52,
       bodyMaxWidth: 540,
       bodyMaxLines: 9,
-      bodyCenterStep: 8,
 
       dividerX: 60,
       dividerY: 610,
@@ -643,12 +643,12 @@ function getWidgetLayout(family) {
     quoteMarkSize: 125,
 
     bodyX: 60,
-    bodyTop: 66,
+    bodyAreaTop: 38,
+    bodyAreaBottom: 224,
     bodyFontSize: 33,
     bodyLineHeight: 46,
     bodyMaxWidth: 535,
     bodyMaxLines: 4,
-    bodyCenterStep: 18,
 
     dividerX: 60,
     dividerY: 241,
@@ -783,9 +783,21 @@ async function renderQuoteCard(
     '  lines[lastIndex] = last + "…";',
     "}",
 
+    "// 按实际正文高度，在正文区域内垂直居中",
+    "const textHeight = " +
+      "(lines.length - 1) * layout.bodyLineHeight + " +
+      "layout.bodyFontSize;",
+
+    "const bodyAreaHeight = " +
+      "layout.bodyAreaBottom - layout.bodyAreaTop;",
+
+    "const textTop = " +
+      "layout.bodyAreaTop + " +
+      "Math.max(0, (bodyAreaHeight - textHeight) / 2);",
+
+    "// Canvas fillText 使用基线定位，0.82 用于把视觉字框放回 textTop",
     "let quoteY = " +
-      "layout.bodyTop + " +
-      "(layout.bodyMaxLines - lines.length) * layout.bodyCenterStep;",
+      "textTop + layout.bodyFontSize * 0.82;",
 
     "for (const line of lines) {",
     "  ctx.fillText(line, layout.bodyX, quoteY);",
