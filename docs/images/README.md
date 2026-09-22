@@ -1,13 +1,12 @@
-# 截图目录
+# README 图片素材
 
-这里用于存放 README 中使用的项目截图。
+本目录用于存放项目 README 中的截图和演示 GIF。
 
-计划文件：
+当前文件：
 
-- widget-preview.png：桌面 Widget 效果
-- setup-api-key.png：API Key 获取或填写过程
-- setup-scriptable.png：Scriptable 安装 / 新建脚本
-- widget-config.png：iOS Widget 配置
-- deeplink-demo.png：点击 Widget 后跳回微信读书原文
-
-截图补齐后，可直接在主 README 中替换当前的“截图待补充”占位说明。
+- `widget-preview.jpg`：桌面小组件最终效果
+- `create-script.jpg`：在 Scriptable 中点击右上角 + 新建脚本
+- `edit-widget.jpg`：长按桌面小组件并进入“编辑小组件”
+- `widget-config.jpg`：选择 WeReadHighlights 脚本并设置交互方式
+- `deeplink-demo.gif`：点击小组件后跳回微信读书原文的动态演示
+- `setup-api-key.png`：API Key 获取 / 填写过程（待补充）
