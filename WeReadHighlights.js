@@ -1,6 +1,6 @@
 // ======================================================
 // WeReadHighlights · Scriptable
-//
+// 项目地址（欢迎star～）：https://github.com/ma-tie/WeReadHighlights
 // - 按可配置周期随机展示一条自己的微信读书划线
 // - 不同刷新时段独立、有放回抽样
 // - 同一刷新时段使用缓存，避免 Widget 刷新时改变
