@@ -23,7 +23,7 @@ WeReadHighlights 是一个基于 **Scriptable + 微信读书 Skill API** 的 iPh
 
 最重要的是：**它不只是展示一句摘录。**
 
-点击小组件 后，会利用划线对应的书籍、章节和文本范围信息，直接跳回微信读书中的原文位置，方便你重新进入上下文继续阅读。
+点击小组件后，会利用划线对应的书籍、章节和文本范围信息，直接跳回微信读书中的原文位置，方便你重新进入上下文继续阅读。
 
 ---
 
@@ -35,7 +35,7 @@ WeReadHighlights 是一个基于 **Scriptable + 微信读书 Skill API** 的 iPh
 | ⏱️ 刷新周期可配置 | 默认 4 小时，可改为 1 / 2 / 3 / 4 / 6 / 8 / 12 / 24 小时 |
 | 🔁 有放回抽样 | 每个新时段独立随机，允许再次抽到以前出现过的句子 |
 | 🧠 尽量全局等概率 | 按每本书的划线数量加权选书，再在书内均匀抽取 |
-| 📖 精确跳回原文 | 点击小组件 可定位到对应书籍、章节和划线范围 |
+| 📖 精确跳回原文 | 点击小组件可定位到对应书籍、章节和划线范围 |
 | 🎨 中文阅读样式 | 浅蓝白背景、舒展的中文正文、背景大引号、书名与作者同一行 |
 | 📱 主屏幕展示 | 支持 iPhone 主屏幕 Medium 小组件 |
 | 🔐 本地保存凭据 | API Key 与 userVid 使用 iOS Keychain 保存，不写入脚本源码 |
@@ -44,17 +44,17 @@ WeReadHighlights 是一个基于 **Scriptable + 微信读书 Skill API** 的 iPh
 
 ## 🖼️ 效果展示
 
-### 桌面 小组件
+### 桌面小组件
 
-> 📷 **截图待补充：桌面 Medium 小组件**
->
-> 建议文件名：<code>docs/images/widget-preview.png</code>
+<p align="center">
+  <img src="docs/images/widget-preview.jpg" width="320" alt="WeReadHighlights 桌面小组件效果">
+</p>
 
 ### 点击后跳回原文
 
-> 📷 **截图待补充：点击小组件 后在微信读书中精确定位划线**
->
-> 建议文件名：<code>docs/images/deeplink-demo.png</code>
+<p align="center">
+  <img src="docs/images/deeplink-demo.gif" width="220" alt="点击小组件精确跳回微信读书原文">
+</p>
 
 ---
 
@@ -71,16 +71,15 @@ WeReadHighlights 是一个基于 **Scriptable + 微信读书 Skill API** 的 iPh
         ↓
 缓存当前刷新时段
         ↓
-iPhone 小组件 展示
+iPhone 小组件展示
         ↓
-点击小组件
-        ↓
+点击小组件↓
 跳回微信读书原文
 </pre>
 
 当前实现会先按微信读书返回的 <code>noteCount</code> 对书籍进行加权，再从选中书籍的个人划线中均匀随机一条。这样避免“每本书概率相同”导致划线很少的书被过度抽中。
 
-同一刷新时段内会使用缓存，因此系统多次刷新 小组件 时不会不断换句子。进入下一个时段后重新随机，属于**独立、有放回抽样**。
+同一刷新时段内会使用缓存，因此系统多次刷新小组件 时不会不断换句子。进入下一个时段后重新随机，属于**独立、有放回抽样**。
 
 ---
 
@@ -90,7 +89,7 @@ iPhone 小组件 展示
 
 在 iPhone App Store 中安装 **[Scriptable](https://apps.apple.com/us/app/scriptable/id1405459188)**。
 
-Scriptable 是一个可以用 JavaScript 创建 iOS 小组件 的应用，本项目的所有逻辑都运行在 Scriptable 中。
+Scriptable 是一个可以用 JavaScript 创建 iOS 小组件的应用，本项目的所有逻辑都运行在 Scriptable 中。
 
 ---
 
@@ -120,7 +119,11 @@ WeReadHighlights 仅在调用微信读书官方接口时读取并使用该凭据
 
 **<code>WeReadHighlights.js</code>**
 
-复制全部代码，在 Scriptable 中新建一个 Script，并粘贴进去。
+复制全部代码，在 Scriptable 中新建一个 Script，并粘贴进去。点击 Scriptable 右上角的 **+** 即可新建脚本。
+
+<p align="center">
+  <img src="docs/images/create-script.jpg" width="300" alt="在 Scriptable 中新建脚本">
+</p>
 
 第一次在 Scriptable 中手动运行时：
 
@@ -128,32 +131,37 @@ WeReadHighlights 仅在调用微信读书官方接口时读取并使用该凭据
 2. 脚本读取你的微信读书划线；
 3. 自动寻找并保存你的 <code>userVid</code>；
 4. 随机生成第一条摘录；
-5. 显示 小组件 预览。
+5. 显示 小组件预览。
 
 API Key 和 userVid 都保存在 Keychain 中，之后不需要重复输入。
 
 ---
 
-## 4. 添加桌面 小组件
+## 4. 添加桌面小组件
 
 在 iPhone 主屏幕长按空白区域：
 
-1. 添加 小组件；
+1. 添加小组件；
 2. 搜索 **Scriptable**；
 3. 选择 **Medium** 尺寸；
 4. 添加到桌面；
-5. 长按 小组件 → 编辑 小组件；
-6. Script 选择 **WeReadHighlights**。
+5. 长按小组件 → **编辑小组件**；
 
-> 📷 **截图待补充：Scriptable 小组件 配置**
->
-> 建议文件名：<code>docs/images/widget-config.png</code>
+<p align="center">
+  <img src="docs/images/edit-widget.jpg" width="260" alt="编辑 Scriptable 小组件">
+</p>
+
+6. 在 **Script** 中选择 **WeReadHighlights**，并保持 **When Interacting → Run Script**。
+
+<p align="center">
+  <img src="docs/images/widget-config.jpg" width="260" alt="选择 WeReadHighlights 脚本">
+</p>
 
 ---
 
-## 5. 点击小组件 回到原文
+## 5. 点击小组件回到原文
 
-点击小组件 后，iOS 会打开微信读书，并定位到对应划线所在的位置。
+点击小组件后，iOS 会打开微信读书，并定位到对应划线所在的位置。
 
 如果某条数据缺少精确定位所需字段，脚本会尝试退化为微信读书返回的书籍级 <code>deepLink</code>。
 
@@ -183,9 +191,9 @@ const REFRESH_INTERVAL_HOURS = 2;
 
 表示每天按 2 小时划分刷新时段；进入新的时段后，会重新随机一条划线。
 
-同一个刷新时段内使用缓存，因此即使 iOS 多次刷新 小组件，内容也不会不断变化。
+同一个刷新时段内使用缓存，因此即使 iOS 多次刷新小组件，内容也不会不断变化。
 
-需要注意：iOS 对 小组件 后台刷新拥有最终调度权。脚本会通过 <code>refreshAfterDate</code> 请求在下一个刷新时段开始后更新，但**实际刷新时间可能被 iOS 延后**。因此配置项控制的是摘录的刷新时段，而不是保证系统在整点精确执行。
+需要注意：iOS 对 小组件后台刷新拥有最终调度权。脚本会通过 <code>refreshAfterDate</code> 请求在下一个刷新时段开始后更新，但**实际刷新时间可能被 iOS 延后**。因此配置项控制的是摘录的刷新时段，而不是保证系统在整点精确执行。
 
 ---
 
@@ -204,7 +212,7 @@ const REFRESH_INTERVAL_HOURS = 2;
 - 底部书名与作者同一行；
 - 点击整张卡片跳回微信读书。
 
-原始划线文本不会因为 小组件 的视觉截断而被修改。
+原始划线文本不会因为小组件 的视觉截断而被修改。
 
 ---
 
@@ -229,7 +237,7 @@ WeReadHighlights 不要求你把微信读书 API Key 写在代码中。
 
 ### 为什么没有严格按照我配置的周期整点变化？
 
-小组件 后台刷新由 iOS 控制，应用只能请求一个建议刷新时间，不能保证精确执行。
+小组件后台刷新由 iOS 控制，应用只能请求一个建议刷新时间，不能保证精确执行。
 
 ### 为什么连续两个时段可能出现同一句？
 
@@ -263,14 +271,15 @@ WeReadHighlights/
 ├── .gitignore
 └── docs/
     └── images/
-        ├── widget-preview.png
-        ├── setup-api-key.png
-        ├── setup-scriptable.png
-        ├── widget-config.png
-        └── deeplink-demo.png
+        ├── widget-preview.jpg
+        ├── create-script.jpg
+        ├── edit-widget.jpg
+        ├── widget-config.jpg
+        ├── deeplink-demo.gif
+        └── setup-api-key.png
 </pre>
 
-<code>docs/images/</code> 中的图片将在后续补充。
+<code>docs/images/</code> 用于保存 README 中的操作截图与演示 GIF。
 
 ---
 
