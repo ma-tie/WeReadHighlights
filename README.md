@@ -47,7 +47,7 @@ WeReadHighlights 是一个基于 **Scriptable + 微信读书 Skill API** 的 iPh
 ### 桌面小组件
 
 <p align="center">
-  <img src="docs/images/widget-preview.jpg" width="320" alt="WeReadHighlights 桌面小组件效果">
+  <img src="docs/images/widget-preview.webp" width="320" alt="WeReadHighlights 桌面小组件效果">
 </p>
 
 ### 点击后跳回原文
@@ -122,7 +122,7 @@ WeReadHighlights 仅在调用微信读书官方接口时读取并使用该凭据
 复制全部代码，在 Scriptable 中新建一个 Script，并粘贴进去。点击 Scriptable 右上角的 **+** 即可新建脚本。
 
 <p align="center">
-  <img src="docs/images/create-script.jpg" width="300" alt="在 Scriptable 中新建脚本">
+  <img src="docs/images/create-script.webp" width="300" alt="在 Scriptable 中新建脚本">
 </p>
 
 第一次在 Scriptable 中手动运行时：
@@ -148,13 +148,13 @@ API Key 和 userVid 都保存在 Keychain 中，之后不需要重复输入。
 5. 长按小组件 → **编辑小组件**；
 
 <p align="center">
-  <img src="docs/images/edit-widget.jpg" width="260" alt="编辑 Scriptable 小组件">
+  <img src="docs/images/edit-widget.webp" width="260" alt="编辑 Scriptable 小组件">
 </p>
 
 6. 在 **Script** 中选择 **WeReadHighlights**，并保持 **When Interacting → Run Script**。
 
 <p align="center">
-  <img src="docs/images/widget-config.jpg" width="260" alt="选择 WeReadHighlights 脚本">
+  <img src="docs/images/widget-config.webp" width="260" alt="选择 WeReadHighlights 脚本">
 </p>
 
 ---
@@ -212,7 +212,7 @@ const REFRESH_INTERVAL_HOURS = 2;
 - 底部书名与作者同一行；
 - 点击整张卡片跳回微信读书。
 
-原始划线文本不会因为小组件 的视觉截断而被修改。
+原始划线文本不会因为小组件的视觉截断而被修改。
 
 ---
 
@@ -249,7 +249,7 @@ WeReadHighlights 不要求你把微信读书 API Key 写在代码中。
 
 ### 为什么正文只显示 4 行？
 
-Medium 小组件 空间有限。长划线只在视觉上被截断，点击后仍然会跳到完整原文。
+Medium 小组件空间有限。长划线只在视觉上被截断，点击后仍然会跳到完整原文。
 
 ### API Key 会不会出现在 GitHub？
 
