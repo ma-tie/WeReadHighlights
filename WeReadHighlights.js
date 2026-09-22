@@ -682,6 +682,10 @@ async function renderQuoteCard(
   const H =
     layout.height;
 
+  // 2× Retina 渲染：
+  // 逻辑尺寸和布局参数保持不变，只提高底层位图像素密度。
+  const RENDER_SCALE = 2;
+
   const quote =
     String(data.quote);
 
@@ -702,10 +706,19 @@ async function renderQuoteCard(
     "</style>",
     "</head>",
     "<body>",
-    '<canvas id="card" width="' + W + '" height="' + H + '"></canvas>',
+    '<canvas id="card" width="' +
+      (W * RENDER_SCALE) +
+      '" height="' +
+      (H * RENDER_SCALE) +
+      '" style="width:' +
+      W +
+      'px;height:' +
+      H +
+      'px"></canvas>',
     "<script>",
     'const canvas = document.getElementById("card");',
     'const ctx = canvas.getContext("2d");',
+    'ctx.scale(' + RENDER_SCALE + ', ' + RENDER_SCALE + ');',
 
     "const layout = " +
       JSON.stringify(layout) +
