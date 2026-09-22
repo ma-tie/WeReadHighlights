@@ -92,10 +92,6 @@ iPhone 小组件 展示
 
 Scriptable 是一个可以用 JavaScript 创建 iOS 小组件 的应用，本项目的所有逻辑都运行在 Scriptable 中。
 
-> 📷 **截图待补充：Scriptable App**
->
-> 建议文件名：<code>docs/images/setup-scriptable.png</code>
-
 ---
 
 ## 2. 获取微信读书 Skill API Key
@@ -125,10 +121,6 @@ WeReadHighlights 仅在调用微信读书官方接口时读取并使用该凭据
 **<code>WeReadHighlights.js</code>**
 
 复制全部代码，在 Scriptable 中新建一个 Script，并粘贴进去。
-
-推荐将 Script 命名为：
-
-**WeReadHighlights**
 
 第一次在 Scriptable 中手动运行时：
 
@@ -161,24 +153,9 @@ API Key 和 userVid 都保存在 Keychain 中，之后不需要重复输入。
 
 ## 5. 点击小组件 回到原文
 
-当抽中的划线包含完整定位信息时，脚本会生成类似：
-
-<pre>
-weread://bestbookmark
-  ?bookId=...
-  &chapterUid=...
-  &rangeStart=...
-  &rangeEnd=...
-  &userVid=...
-</pre>
-
 点击小组件 后，iOS 会打开微信读书，并定位到对应划线所在的位置。
 
 如果某条数据缺少精确定位所需字段，脚本会尝试退化为微信读书返回的书籍级 <code>deepLink</code>。
-
-> 📷 **截图待补充：精确跳转原文**
->
-> 建议文件名：<code>docs/images/deeplink-demo.png</code>
 
 ---
 
