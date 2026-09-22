@@ -1,19 +1,28 @@
 // ======================================================
 // WeReadHighlights · Scriptable
 //
-// - 每 4 小时随机展示一条自己的微信读书划线
-// - 不同时间段独立、有放回抽样
-// - 同一时间段使用缓存，避免 Widget 刷新时改变
+// - 按可配置周期随机展示一条自己的微信读书划线
+// - 不同刷新时段独立、有放回抽样
+// - 同一刷新时段使用缓存，避免 Widget 刷新时改变
 // - 点击 Widget 可精确跳回对应原文
 // ======================================================
 
 const API_URL = "https://i.weread.qq.com/api/agent/gateway";
 const SKILL_VERSION = "1.0.4";
 
+// ======================================================
+// 用户配置
+//
+// 默认每 4 小时更新一次。
+// 支持：1 / 2 / 3 / 4 / 6 / 8 / 12 / 24
+// ======================================================
+
+const REFRESH_INTERVAL_HOURS = 4;
+
 const API_KEY_NAME = "weread_daily_quote_api_key";
 const USER_VID_KEY = "weread_user_vid";
-const CACHE_KEY = "weread_quote_4h_cache";
-const CACHE_VERSION = 2;
+const CACHE_KEY = "weread_quote_cache";
+const CACHE_VERSION = 3;
 
 
 // ======================================================
@@ -94,31 +103,95 @@ async function weread(apiName, params = {}) {
 
 
 // ======================================================
-// 4 小时时段
+// 刷新周期
 // ======================================================
 
+function validateRefreshInterval() {
+  const allowed = [
+    1,
+    2,
+    3,
+    4,
+    6,
+    8,
+    12,
+    24
+  ];
+
+  if (
+    !allowed.includes(
+      REFRESH_INTERVAL_HOURS
+    )
+  ) {
+    throw new Error(
+      "REFRESH_INTERVAL_HOURS 仅支持 1 / 2 / 3 / 4 / 6 / 8 / 12 / 24"
+    );
+  }
+}
+
+
 function currentSlot() {
+  validateRefreshInterval();
+
   const now = new Date();
 
   const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  const block = Math.floor(now.getHours() / 4);
+  const month =
+    String(
+      now.getMonth() + 1
+    ).padStart(2, "0");
 
-  return year + "-" + month + "-" + day + "-" + block;
+  const day =
+    String(
+      now.getDate()
+    ).padStart(2, "0");
+
+  const block =
+    Math.floor(
+      now.getHours() /
+      REFRESH_INTERVAL_HOURS
+    );
+
+  return (
+    year +
+    "-" +
+    month +
+    "-" +
+    day +
+    "-" +
+    REFRESH_INTERVAL_HOURS +
+    "h-" +
+    block
+  );
 }
 
 
 function nextRefreshTime() {
+  validateRefreshInterval();
+
   const now = new Date();
   const next = new Date(now);
 
   const nextHour =
-    (Math.floor(now.getHours() / 4) + 1) * 4;
+    (
+      Math.floor(
+        now.getHours() /
+        REFRESH_INTERVAL_HOURS
+      ) + 1
+    ) *
+    REFRESH_INTERVAL_HOURS;
 
-  // 请求在下一个时段开始 5 分钟后刷新。
+  // 支持的周期都能整除 24，
+  // 因此 setHours(24, ...) 会自然进入下一天。
+  //
+  // 在下一时段开始 5 分钟后请求刷新，
   // 实际刷新时间仍由 iOS 决定。
-  next.setHours(nextHour, 5, 0, 0);
+  next.setHours(
+    nextHour,
+    5,
+    0,
+    0
+  );
 
   return next;
 }
