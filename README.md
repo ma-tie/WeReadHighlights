@@ -268,6 +268,44 @@ WeReadHighlights 不要求你把微信读书 API Key 写在代码中。
 
 ---
 
+# 📄 导出可复制源码 PDF
+
+仓库内提供了一个维护者工具，可以直接把最新的 <code>WeReadHighlights.js</code> 导出成适合复制代码的**超长单页 PDF**。生成过程不经过 Word / WPS，也不会添加行号、页眉或页脚。
+
+先安装导出依赖：
+
+<pre>
+python3 -m pip install -r tools/requirements.txt
+</pre>
+
+然后在仓库根目录运行：
+
+<pre>
+python3 tools/export_source_pdf.py
+</pre>
+
+默认会读取根目录的 <code>WeReadHighlights.js</code>，并生成：
+
+<pre>
+WeReadHighlights.pdf
+</pre>
+
+如果需要同时保留用于排查排版的中间 HTML：
+
+<pre>
+python3 tools/export_source_pdf.py --html-output WeReadHighlights.html
+</pre>
+
+也可以指定其他源码和输出位置：
+
+<pre>
+python3 tools/export_source_pdf.py path/to/source.js -o path/to/output.pdf
+</pre>
+
+生成的 PDF / HTML 属于发布产物，默认通过 <code>.gitignore</code> 忽略，不需要随每次源码更新提交。
+
+---
+
 # 📂 项目结构
 
 <pre>
@@ -276,6 +314,9 @@ WeReadHighlights/
 ├── README.md
 ├── LICENSE
 ├── .gitignore
+├── tools/
+│   ├── export_source_pdf.py
+│   └── requirements.txt
 └── docs/
     └── images/
         ├── widget-preview.webp
@@ -286,7 +327,7 @@ WeReadHighlights/
         └── setup-api-key.png
 </pre>
 
-<code>docs/images/</code> 用于保存 README 中的操作截图与演示 GIF。
+<code>docs/images/</code> 用于保存 README 中的操作截图与演示 GIF；<code>tools/</code> 中包含维护者使用的源码 PDF 导出工具。
 
 ---
 
