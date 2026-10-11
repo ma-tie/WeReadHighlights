@@ -9,7 +9,8 @@
 // ======================================================
 
 const API_URL = "https://i.weread.qq.com/api/agent/gateway";
-const SKILL_VERSION = "1.0.4";
+const SKILL_VERSION = "1.0.5";
+const SKILL_VERSION_KEY = "weread_skill_version";
 
 // ======================================================
 // 用户配置
@@ -67,39 +68,108 @@ async function getApiKey() {
 // 微信读书 API
 // ======================================================
 
+function getSkillVersion() {
+  if (Keychain.contains(SKILL_VERSION_KEY)) {
+    return Keychain.get(SKILL_VERSION_KEY);
+  }
+
+  return SKILL_VERSION;
+}
+
+
+function saveSkillVersion(version) {
+  if (!version) {
+    return;
+  }
+
+  Keychain.set(
+    SKILL_VERSION_KEY,
+    String(version)
+  );
+}
+
+
 async function weread(apiName, params = {}) {
   const apiKey = await getApiKey();
 
-  const request = new Request(API_URL);
-  request.method = "POST";
-  request.headers = {
-    "Authorization": "Bearer " + apiKey,
-    "Content-Type": "application/json"
-  };
+  let skillVersion =
+    getSkillVersion();
 
-  request.body = JSON.stringify({
-    api_name: apiName,
-    ...params,
-    skill_version: SKILL_VERSION
-  });
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const request = new Request(API_URL);
 
-  const data = await request.loadJSON();
+    request.method = "POST";
 
-  if (data.errcode && data.errcode !== 0) {
-    throw new Error(
-      data.errmsg ||
-      "微信读书 API 错误：" + data.errcode
+    request.headers = {
+      "Authorization": "Bearer " + apiKey,
+      "Content-Type": "application/json"
+    };
+
+    request.body = JSON.stringify({
+      api_name: apiName,
+      ...params,
+      skill_version: skillVersion
+    });
+
+    const data =
+      await request.loadJSON();
+
+    if (data.upgrade_info) {
+      const latestVersion =
+        String(
+          data.upgrade_info.latest_version ||
+          ""
+        ).trim();
+
+      if (
+        attempt === 0 &&
+        latestVersion &&
+        latestVersion !== skillVersion
+      ) {
+        console.log(
+          "微信读书 Skill 自动升级：" +
+          skillVersion +
+          " → " +
+          latestVersion
+        );
+
+        skillVersion =
+          latestVersion;
+
+        saveSkillVersion(
+          latestVersion
+        );
+
+        continue;
+      }
+
+      throw new Error(
+        data.upgrade_info.message ||
+        "微信读书 Skill 需要升级"
+      );
+    }
+
+    if (
+      data.errcode &&
+      data.errcode !== 0
+    ) {
+      throw new Error(
+        data.errmsg ||
+        "微信读书 API 错误：" +
+        data.errcode
+      );
+    }
+
+    saveSkillVersion(
+      skillVersion
     );
+
+    return data;
   }
 
-  if (data.upgrade_info) {
-    throw new Error(
-      data.upgrade_info.message ||
-      "微信读书 Skill 需要升级"
-    );
-  }
-
-  return data;
+  throw new Error(
+    "微信读书 Skill 自动升级失败"
+  );
 }
 
 
