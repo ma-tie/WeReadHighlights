@@ -43,6 +43,8 @@ jobs:
           yes | "$SDKMANAGER" --licenses >/dev/null || true
           "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
           "$SDKMANAGER" --list_installed | grep -E '(platforms;android-35|build-tools;35.0.0)'
+      - name: Validate widget RemoteViews XML
+        run: python3 android/tools/validate_widget_layouts.py
       - name: Unit tests and debug APK
         run: gradle -p android :app:testDebugUnitTest :app:assembleDebug --stacktrace
       - uses: actions/upload-artifact@v4
