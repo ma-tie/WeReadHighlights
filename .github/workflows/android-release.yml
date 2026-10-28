@@ -63,7 +63,7 @@ jobs:
           ios_version = ios.split('const APP_VERSION = "', 1)[1].split('"', 1)[0]
           import re
           for kind, value in (("Release", version), ("Android", android_version), ("iOS", ios_version)):
-              assert re.fullmatch(r"\\d+\\.\\d+\\.\\d+", value), f"Invalid {kind} version: {value}"
+              assert re.fullmatch(r"\d+\.\d+\.\d+", value), f"Invalid {kind} version: {value}"
           print(f"Release snapshot v{version}: iOS v{ios_version} / Android v{android_version}")
           if os.environ.get("GITHUB_REF", "").startswith("refs/tags/"):
               assert os.environ["GITHUB_REF_NAME"] == "v" + version, (
@@ -94,7 +94,7 @@ jobs:
           export ANDROID_SIGNING_STORE_FILE="$SIGNING_FILE"
           gradle -p android :app:testDebugUnitTest :app:assembleRelease --no-daemon --stacktrace
 
-          ANDROID_VERSION="$(sed -n 's/.*versionName = "\\([^"]*\\)".*/\\1/p' android/app/build.gradle.kts | head -n 1)"
+          ANDROID_VERSION="$(grep -m1 'versionName = ' android/app/build.gradle.kts | cut -d '"' -f2)"
           test -n "$ANDROID_VERSION"
           mkdir -p dist
           cp android/app/build/outputs/apk/release/app-release.apk "dist/WeReadHighlights-Android-v${ANDROID_VERSION}.apk"
@@ -137,8 +137,8 @@ jobs:
         run: |
           set -euo pipefail
           RELEASE_VERSION="$(cat VERSION)"
-          ANDROID_VERSION="$(sed -n 's/.*versionName = "\\([^"]*\\)".*/\\1/p' android/app/build.gradle.kts | head -n 1)"
-          IOS_VERSION="$(sed -n 's/^const APP_VERSION = "\\([^"]*\\)".*/\\1/p' WeReadHighlights.js | head -n 1)"
+          ANDROID_VERSION="$(grep -m1 'versionName = ' android/app/build.gradle.kts | cut -d '"' -f2)"
+          IOS_VERSION="$(grep -m1 '^const APP_VERSION = ' WeReadHighlights.js | cut -d '"' -f2)"
           TAG="v$RELEASE_VERSION"
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "::error::Release $TAG already exists; increment the shared version for future releases."
