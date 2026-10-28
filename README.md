@@ -4,7 +4,7 @@
 
 **让读过的句子，再遇见你一次。**
 
-把微信读书中曾经划过的句子带回桌面，随机回顾、定期更新，点击即可尝试返回阅读上下文。
+把微信读书中曾经划过的句子带回桌面，随机回顾、定期更新，点击即可返回阅读上下文。
 
 [![iOS](https://img.shields.io/badge/iOS-Scriptable-000000?logo=apple&logoColor=white)](https://github.com/ma-tie/WeReadHighlights/releases/latest)
 [![Android](https://img.shields.io/badge/Android-APK-3DDC84?logo=android&logoColor=white)](https://github.com/ma-tie/WeReadHighlights/releases/latest)
