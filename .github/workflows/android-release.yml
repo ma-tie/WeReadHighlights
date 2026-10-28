@@ -1,18 +1,24 @@
-name: Android signed release APK
+name: WeReadHighlights signed multiplatform release
 
 on:
   push:
     branches:
       - feature/android-app
+      - main
     tags:
-      - 'android-v*'
+      - 'v*'
     paths:
       - 'android/**'
+      - 'WeReadHighlights.js'
+      - 'VERSION'
       - '.github/workflows/android-release.yml'
   workflow_dispatch:
 
+# Build signed test artifacts on the development branch. Publish a public
+# GitHub Release only on a deliberately tagged push, or the one-time
+# main-branch merge commit explicitly marked [publish].
 concurrency:
-  group: android-release-${{ github.ref }}
+  group: weread-release-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -20,7 +26,10 @@ permissions:
 
 jobs:
   signed-apk:
-    # Never expose release signing credentials to untrusted pull requests.
+    if: >-
+      startsWith(github.ref, 'refs/tags/v') ||
+      github.ref == 'refs/heads/feature/android-app' ||
+      (github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[publish]'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -39,19 +48,28 @@ jobs:
           test -n "$SDKMANAGER" && test -x "$SDKMANAGER"
           yes | "$SDKMANAGER" --licenses >/dev/null || true
           "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
-      - name: Validate widget resources
-        run: python3 android/tools/validate_widget_layouts.py
-      - name: Check release tag matches APK version
-        if: startsWith(github.ref, 'refs/tags/android-v')
+      - name: Validate unified version and Android widget resources
         shell: bash
         run: |
           set -euo pipefail
-          VERSION="$(sed -n 's/.*versionName = "\([^"]*\)".*/\1/p' android/app/build.gradle.kts | head -n 1)"
-          test -n "$VERSION"
-          test "$GITHUB_REF_NAME" = "android-v$VERSION" || {
-            echo "::error::Tag does not match android/app/build.gradle.kts versionName"
-            exit 1
-          }
+          python3 android/tools/validate_widget_layouts.py
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          version = Path("VERSION").read_text(encoding="utf-8").strip()
+          gradle = Path("android/app/build.gradle.kts").read_text(encoding="utf-8")
+          ios = Path("WeReadHighlights.js").read_text(encoding="utf-8")
+          android_version = gradle.split('versionName = "', 1)[1].split('"', 1)[0]
+          ios_version = ios.split('const APP_VERSION = "', 1)[1].split('"', 1)[0]
+          assert version and version == android_version == ios_version, (
+              f"Versions differ: VERSION={version}, Android={android_version}, iOS={ios_version}"
+          )
+          if os.environ.get("GITHUB_REF", "").startswith("refs/tags/"):
+              assert os.environ["GITHUB_REF_NAME"] == "v" + version, (
+                  "The tag must equal v followed by the shared VERSION"
+              )
+          print("Verified iOS and Android unified version v" + version)
+          PY
       - name: Build signed release APK
         shell: bash
         env:
@@ -63,7 +81,7 @@ jobs:
           set -euo pipefail
           for name in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
             if test -z "${!name:-}"; then
-              echo "::error::Missing GitHub Actions secret: $name"
+              echo "::error::Missing signing secret: $name"
               exit 1
             fi
           done
@@ -75,45 +93,79 @@ jobs:
           export ANDROID_SIGNING_STORE_FILE="$SIGNING_FILE"
           gradle -p android :app:testDebugUnitTest :app:assembleRelease --no-daemon --stacktrace
 
-          VERSION="$(sed -n 's/.*versionName = "\([^"]*\)".*/\1/p' android/app/build.gradle.kts | head -n 1)"
-          test -n "$VERSION"
+          VERSION="$(cat VERSION)"
           mkdir -p dist
           cp android/app/build/outputs/apk/release/app-release.apk "dist/WeReadHighlights-v${VERSION}-release.apk"
-      - name: Verify APK signing certificate
+          cp WeReadHighlights.js dist/WeReadHighlights.js
+      - name: Verify release signature and create checksums
         shell: bash
         run: |
           set -euo pipefail
           APK="$(find dist -maxdepth 1 -name '*.apk' -print -quit)"
           test -n "$APK"
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK"
-          shasum -a 256 "$APK"
+          (cd dist && sha256sum *.apk WeReadHighlights.js > SHA256SUMS.txt)
+          cat dist/SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: WeReadHighlights-Android-signed-release
-          path: dist/*.apk
+          name: WeReadHighlights-multiplatform-v${{ github.sha }}
+          path: dist/*
           if-no-files-found: error
           retention-days: 90
 
   github-release:
-    if: startsWith(github.ref, 'refs/tags/android-v')
+    if: >-
+      startsWith(github.ref, 'refs/tags/v') ||
+      (github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[publish]'))
     needs: signed-apk
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
-          name: WeReadHighlights-Android-signed-release
+          name: WeReadHighlights-multiplatform-v${{ github.sha }}
           path: dist
-      - name: Publish tagged GitHub Release
+      - name: Publish shared iOS + Android GitHub Release
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          VERSION="${GITHUB_REF_NAME#android-v}"
-          gh release create "$GITHUB_REF_NAME" dist/*.apk \
-            --verify-tag \
-            --title "WeReadHighlights Android v$VERSION" \
-            --generate-notes
+          VERSION="$(cat VERSION)"
+          TAG="v$VERSION"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "::error::Release $TAG already exists; increment the shared version for future releases."
+            exit 1
+          fi
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            test "$GITHUB_REF_NAME" = "$TAG"
+            TAG_OPTS=(--verify-tag)
+          else
+            test "$GITHUB_REF" = refs/heads/main
+            TAG_OPTS=(--target "$GITHUB_SHA")
+          fi
+
+          cat > release-notes.md <<'EOF'
+          ## WeReadHighlights · iOS + Android
+
+          This is one shared version for both platforms.
+
+          - **iOS**: download `WeReadHighlights.js`, import it into [Scriptable](https://apps.apple.com/app/scriptable/id1405459188), and configure the home-screen widget.
+          - **Android**: download `WeReadHighlights-vVERSION-release.apk`, install it on Android 8.0+ and add a WeReadHighlights home-screen widget (Small / Medium / Large).
+          - **SHA256SUMS.txt** provides checksums for both downloads.
+
+          Android includes encrypted API Key storage, configurable refresh intervals and text sizes, and native quote widgets. iOS keeps its Scriptable implementation. Both use the WeRead Skill API.
+
+          **Note:** Android exact-position deep linking into WeRead depends on the installed app and available quote metadata; results may vary by device.
+          EOF
+          sed -i "s/vVERSION/v$VERSION/g" release-notes.md
+          gh release create "$TAG" \
+            dist/WeReadHighlights.js \
+            dist/WeReadHighlights-v"${VERSION}"-release.apk \
+            dist/SHA256SUMS.txt \
+            --title "WeReadHighlights v$VERSION · iOS + Android" \
+            --notes-file release-notes.md \
+            "${TAG_OPTS[@]}"
