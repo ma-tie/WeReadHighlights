@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">WeReadHighlights</string>
+    <string name="widget_description">随机回顾微信读书划线</string>
+</resources>
