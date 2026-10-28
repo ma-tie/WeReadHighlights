@@ -2,390 +2,228 @@
 
 # 📚 WeReadHighlights
 
-**把微信读书里曾经划过的句子，重新带回你的 iPhone 和 Android 桌面。**
-
-随机展示你在微信读书中的个人划线，按设定周期自动更新；点击小组件，可直接跳回微信读书中的原文位置。
-
-![iOS](https://img.shields.io/badge/iOS-%E5%B0%8F%E7%BB%84%E4%BB%B6-000000?logo=apple&logoColor=white)
-![Android](https://img.shields.io/badge/Android-APK-3DDC84?logo=android&logoColor=white)
-![Scriptable](https://img.shields.io/badge/Scriptable-JavaScript-2F80ED)
-![WeRead](https://img.shields.io/badge/微信读书-Highlights-20B875)
-![License](https://img.shields.io/badge/License-MIT-green)
-
-</div>
-
-> **双平台下载**：从 [GitHub Releases](https://github.com/ma-tie/WeReadHighlights/releases) 选择 **iOS 的 `WeReadHighlights.js`** 或 **Android 正式签名 APK**。开发代码分别位于 [WeReadHighlights.js](WeReadHighlights.js) 与 [android/](android/)。
-
----
-
-## ✨ 它能做什么？
-
-WeReadHighlights 是一款微信读书划线回顾小组件：iOS 使用 **Scriptable**，Android 使用独立 **Kotlin APK**，都通过微信读书 Skill API 获取个人划线。
-
-它会从你自己的微信读书划线中随机抽取一条，在 iPhone 主屏幕小组件中展示。刷新周期可以在脚本顶部自行配置，默认每 4 小时更新一次。
-
-最重要的是：**它不只是展示一句摘录。**
-
-点击小组件后，会利用划线对应的书籍、章节和文本范围信息，直接跳回微信读书中的原文位置，方便你重新进入上下文继续阅读。
-
----
-
-## 🌟 功能亮点
-
-| 功能 | 说明 |
-| --- | --- |
-| 🎲 随机回顾 | 从自己的微信读书个人划线中随机选择 |
-| ⏱️ 刷新周期可配置 | 默认 4 小时，可改为 1 / 2 / 3 / 4 / 6 / 8 / 12 / 24 小时 |
-| 🔁 有放回抽样 | 每个新时段独立随机，允许再次抽到以前出现过的句子 |
-| 🧠 尽量全局等概率 | 按每本书的划线数量加权选书，再在书内均匀抽取 |
-| 📖 精确跳回原文 | 点击小组件可定位到对应书籍、章节和划线范围 |
-| 🎨 中文阅读样式 | 浅蓝白背景、舒展的中文正文、背景大引号、书名与作者同一行 |
-| 📱 多尺寸适配 | 支持 iPhone 主屏幕 Small / Medium / Large 三种小组件尺寸 |
-| 🔐 本地保存凭据 | API Key 与 userVid 使用 iOS Keychain 保存，不写入脚本源码 |
-
----
-
-## 🖼️ 效果展示
-
-### 桌面小组件（Medium 示例）
-
-<p align="center">
-  <img src="docs/images/widget-preview.webp" width="320" alt="WeReadHighlights 桌面小组件效果">
-</p>
-
-### 点击后跳回原文
-
-<p align="center">
-  <img src="docs/images/deeplink-demo.gif" width="220" alt="点击小组件精确跳回微信读书原文">
-</p>
-
----
-
-## 🧩 工作原理
-
-<pre>
-微信读书个人划线
-        ↓
-获取所有有笔记的书籍
-        ↓
-按 noteCount 加权随机选书
-        ↓
-在该书个人划线中均匀随机一条
-        ↓
-缓存当前刷新时段
-        ↓
-iPhone 小组件展示
-        ↓
-点击小组件↓
-跳回微信读书原文
-</pre>
-
-当前实现会先按微信读书返回的 <code>noteCount</code> 对书籍进行加权，再从选中书籍的个人划线中均匀随机一条。这样避免“每本书概率相同”导致划线很少的书被过度抽中。
-
-同一刷新时段内会使用缓存，因此系统多次刷新小组件时不会不断换句子。进入下一个时段后重新随机，属于**独立、有放回抽样**。
-
----
-
-# 📦 下载与跨平台版本管理
-
-**[GitHub Releases：下载稳定版](https://github.com/ma-tie/WeReadHighlights/releases/latest)**
-
-每次发布都包含 iOS 和 Android 两个平台的文件，下载同一个 Release 下适合自己设备的版本：
-
-| 平台 | 附件 | 安装方式 |
-| --- | --- | --- |
-| iOS | `WeReadHighlights.js` | 导入 Scriptable，添加脚本小组件 |
-| Android | `WeReadHighlights-Android-v<Android版本>.apk` | 安装 APK，打开 App，添加桌面小组件 |
-| 校验 | `SHA256SUMS.txt` | 对照两份文件的 SHA-256 校验和 |
-
-**版本号分开维护：** 仓库的 `VERSION` 是**发布批次号**（例如 GitHub Release `v0.2.4`）；iOS 脚本使用 `APP_VERSION`；Android 使用 Gradle `versionName` 和 `versionCode`。只有相应平台发生变化，才递增该平台版本号。一个 Release 仍会附带两个平台最新的稳定文件，未改动的平台可以继续保持旧版本号。CI 检查发布版本格式与标签，但**不会强制两个平台的版本相等**。
-
-Android 最低支持 Android 8.0，提供 Small / Medium / Large 三种尺寸、可调刷新周期及字号。点击划线的精确跳转效果可能因微信读书安卓版和划线元数据而异。
-
-## Android 安装
-
-1. 从 Releases 下载名字包含 `Android` 的 `.apk`，用文件管理器打开并按系统提示允许安装。
-2. 首次运行输入自己的 `wrk-` 微信读书 Skill API Key。
-3. 长按桌面空白区域 → 小组件 → 选择 WeReadHighlights 小号、中号或大号。
-4. 打开 App 可调整刷新周期、字号和作者显示。
-
----
-
-# 🚀 安装
-
-## 1. 安装 Scriptable
-
-在 iPhone App Store 中安装 **[Scriptable](https://apps.apple.com/us/app/scriptable/id1405459188)**。
-
-Scriptable 是一个可以用 JavaScript 创建 iOS 小组件的应用，本项目的所有逻辑都运行在 Scriptable 中。
-
----
-
-## 2. 获取微信读书 Skill API Key
-
-本项目通过腾讯官方 **WeChatReading Skill Gateway** 获取你的书籍与个人划线数据。
-
-前往 **[微信读书 Skills API Key 获取页面](https://weread.qq.com/r/weread-skills)**，获取一个以 <code>wrk-</code> 开头的 API Key。
-
-首次运行脚本时，WeReadHighlights 会弹窗要求输入 API Key，并将它保存到设备本地的 **iOS Keychain** 中。API Key 不会被写入脚本源码，也不会随着本项目提交到 GitHub。
-
-WeReadHighlights 仅在调用微信读书官方接口时读取并使用该凭据，项目代码不会主动将 API Key 上传到其他第三方服务器。你的 userVid 和当前摘录缓存也保存在本机运行环境中。
-
-> 🔐 **隐私说明**
->
-> API Key 本质上属于个人访问凭据，请不要截图公开、提交到 GitHub 或分享给其他人。如果怀疑 API Key 已经泄露，建议及时更换。
-
-> 📷 **截图待补充：获取 / 填写 API Key**
->
-> 建议文件名：<code>docs/images/setup-api-key.png</code>
-
----
-
-## 3. 导入脚本
-
-打开仓库中的：
-
-**<code>WeReadHighlights.js</code>**
-
-复制全部代码，在 Scriptable 中新建一个 Script，并粘贴进去。点击 Scriptable 右上角的 **+** 即可新建脚本。
-
-<p align="center">
-  <img src="docs/images/create-script.webp" width="300" alt="在 Scriptable 中新建脚本">
-</p>
-
-第一次在 Scriptable 中手动运行时：
-
-1. 输入微信读书 API Key；
-2. 脚本读取你的微信读书划线；
-3. 自动寻找并保存你的 <code>userVid</code>；
-4. 随机生成第一条摘录；
-5. 显示小组件预览。
-
-API Key 和 userVid 都保存在 Keychain 中，之后不需要重复输入。
-
----
-
-## 4. 添加桌面小组件
-
-在 iPhone 主屏幕长按空白区域：
-
-1. 添加小组件；
-2. 搜索 **Scriptable**；
-3. 选择 **Small / Medium / Large** 任一尺寸；
-4. 添加到桌面；
-5. 长按小组件 → **编辑小组件**；
-
-<p align="center">
-  <img src="docs/images/edit-widget.webp" width="260" alt="编辑 Scriptable 小组件">
-</p>
-
-6. 在 **Script** 中选择 **WeReadHighlights**，并保持 **When Interacting → Run Script**。
-
-<p align="center">
-  <img src="docs/images/widget-config.webp" width="260" alt="选择 WeReadHighlights 脚本">
-</p>
-
----
-
-## 5. 点击小组件回到原文
-
-点击小组件后，iOS 会打开微信读书，并定位到对应划线所在的位置。
-
-如果某条数据缺少精确定位所需字段，脚本会尝试退化为微信读书返回的书籍级 <code>deepLink</code>。
-
----
-
-# ⏰ 刷新周期
-
-默认刷新周期为 **4 小时**，但这只是默认配置，不是固定行为。
-
-打开 <code>WeReadHighlights.js</code>，修改顶部的：
-
-<pre>
-const REFRESH_INTERVAL_HOURS = 4;
-</pre>
-
-目前支持：
-
-<pre>
-1 / 2 / 3 / 4 / 6 / 8 / 12 / 24 小时
-</pre>
-
-例如：
-
-<pre>
-const REFRESH_INTERVAL_HOURS = 2;
-</pre>
-
-表示每天按 2 小时划分刷新时段；进入新的时段后，会重新随机一条划线。
-
-同一个刷新时段内使用缓存，因此即使 iOS 多次刷新小组件，内容也不会不断变化。
-
-需要注意：iOS 对小组件后台刷新拥有最终调度权。脚本会通过 <code>refreshAfterDate</code> 请求在下一个刷新时段开始后更新，但**实际刷新时间可能被 iOS 延后**。因此配置项控制的是摘录的刷新时段，而不是保证系统在整点精确执行。
-
----
-
-# 🎨 三种小组件布局
-
-WeReadHighlights 会根据 iOS 提供的 <code>config.widgetFamily</code> 自动选择对应布局：
-
-| 尺寸 | 布局 |
-| --- | --- |
-| **Small** | 紧凑方形布局，正文最多 4 行，仅显示书名 |
-| **Medium** | 当前默认样式，正文最多 4 行，底部显示书名与作者 |
-| **Large** | 更宽松的阅读布局，正文最多 9 行，字号和行距更大，底部显示书名与作者 |
-
-三种尺寸共享同一套视觉语言：
-
-- 浅蓝 → 白色渐变背景；
-- 左侧蓝色竖向装饰线；
-- 半透明大型开引号；
-- 超出可显示范围时，仅在视觉上截断并显示省略号；
-- 点击整张卡片跳回微信读书。
-
-Medium 布局保持原先已经确认的 33 px 正文和 46 px 行距；Small 与 Large 使用各自独立的字号、行距和坐标，不是简单缩放 Medium 图片。
-
-脚本会请求一组中文字体作为候选，但 Scriptable 内部 WebView 的实际字体命中情况取决于 iOS 环境，因此项目不声明固定使用某一种具体中文字体。
-
-原始划线文本不会因为小组件的视觉截断而被修改。
-
----
-
-# 🔐 隐私与安全
-
-WeReadHighlights 不要求你把微信读书 API Key 写在代码中。
-
-首次输入后：
-
-- API Key 保存于 Scriptable 可访问的 **iOS Keychain**；
-- userVid 同样保存在 Keychain；
-- 当前刷新时段的摘录缓存在本机；
-- 项目代码不会主动把 API Key 上传到第三方服务器。
-
-代码仓库中**不应包含任何真实 API Key、userVid 或个人阅读数据**。
-
-如果你曾经在公开场合暴露 API Key，建议立即更换。
-
----
-
-# ❓ 常见问题
-
-### 为什么没有严格按照我配置的周期整点变化？
-
-小组件后台刷新由 iOS 控制，应用只能请求一个建议刷新时间，不能保证精确执行。
-
-### 为什么连续两个时段可能出现同一句？
-
-这是设计行为。当前采用**有放回随机抽样**，不同时间段之间互相独立。
-
-### 为什么同一个刷新时段手动刷新后还是同一句？
-
-脚本会缓存当前时段的结果，避免 iOS 多次刷新导致一句话不停变化。
-
-### 为什么正文会被截断？
-
-不同尺寸有不同的最大显示行数：Small 和 Medium 最多显示 4 行，Large 最多显示 9 行。长划线只在视觉上被截断，点击后仍然会跳到完整原文。
-
-### API Key 会不会出现在 GitHub？
-
-不会。脚本通过运行时弹窗获取 API Key，并保存到 Keychain。请不要自己把 Key 写进源码后再提交。
-
-### 点击后为什么只能打开书，不能定位划线？
-
-精确跳转依赖 <code>bookId</code>、<code>chapterUid</code>、<code>range</code> 和 <code>userVid</code>。如果某条划线缺少这些信息，会退化为书籍级跳转。
-
----
-
-# 📄 导出可复制源码 PDF
-
-仓库内提供了一个维护者工具，可以直接把最新的 <code>WeReadHighlights.js</code> 导出成适合复制代码的**超长单页 PDF**。生成过程不经过 Word / WPS，也不会添加行号、页眉或页脚。
-
-先安装导出依赖：
-
-<pre>
-python3 -m pip install -r tools/requirements.txt
-</pre>
-
-然后在仓库根目录运行：
-
-<pre>
-python3 tools/export_source_pdf.py
-</pre>
-
-默认会读取根目录的 <code>WeReadHighlights.js</code>，并生成：
-
-<pre>
-WeReadHighlights.pdf
-</pre>
-
-如果需要同时保留用于排查排版的中间 HTML：
-
-<pre>
-python3 tools/export_source_pdf.py --html-output WeReadHighlights.html
-</pre>
-
-也可以指定其他源码和输出位置：
-
-<pre>
-python3 tools/export_source_pdf.py path/to/source.js -o path/to/output.pdf
-</pre>
-
-生成的 PDF / HTML 属于发布产物，默认通过 <code>.gitignore</code> 忽略，不需要随每次源码更新提交。
-
----
-
-# 📂 项目结构
-
-<pre>
-WeReadHighlights/
-├── WeReadHighlights.js
-├── README.md
-├── LICENSE
-├── .gitignore
-├── tools/
-│   ├── export_source_pdf.py
-│   └── requirements.txt
-└── docs/
-    └── images/
-        ├── widget-preview.webp
-        ├── create-script.webp
-        ├── edit-widget.webp
-        ├── widget-config.webp
-        ├── deeplink-demo.gif
-        └── setup-api-key.png
-</pre>
-
-<code>docs/images/</code> 用于保存 README 中的操作截图与演示 GIF；<code>tools/</code> 中包含维护者使用的源码 PDF 导出工具。
-
----
-
-# 🛠️ 依赖
-
-- iOS
-- Scriptable
-- 微信读书
-- 腾讯微信读书 Skill API
-
-本项目没有 npm 依赖，也不需要服务器。
-
----
-
-# 🤝 贡献
-
-欢迎提交 Issue 或 Pull Request。
-
-如果你有新的小组件样式、抽样策略，或者发现某些书籍无法正确跳转，也欢迎一起完善。
-
----
-
-# 📄 License
-
-本项目采用 **MIT License** 开源。
-
----
-
-<div align="center">
-
 **让读过的句子，再遇见你一次。**
 
+把微信读书中曾经划过的句子带回桌面，随机回顾、定期更新，点击即可尝试返回阅读上下文。
+
+[![iOS](https://img.shields.io/badge/iOS-Scriptable-000000?logo=apple&logoColor=white)](https://github.com/ma-tie/WeReadHighlights/releases/latest)
+[![Android](https://img.shields.io/badge/Android-APK-3DDC84?logo=android&logoColor=white)](https://github.com/ma-tie/WeReadHighlights/releases/latest)
+[![Latest Release](https://img.shields.io/github/v/release/ma-tie/WeReadHighlights?label=Release)](https://github.com/ma-tie/WeReadHighlights/releases/latest)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+
+**[下载最新版本](https://github.com/ma-tie/WeReadHighlights/releases/latest)** · [iOS 安装指南](#ios-安装) · [Android 安装指南](#android-安装) · [版本管理](#版本与发布)
+
 </div>
+
+---
+
+## 项目介绍
+
+WeReadHighlights 是一个开源的**微信读书个人划线桌面小组件**，支持 iOS 和 Android。
+
+它会从你的微信读书划线中随机挑选一句，展示在主屏幕上。默认按 **4 小时**划分刷新时段，支持调整周期；点击小组件可尝试返回对应书籍或划线位置。
+
+两个平台使用同一个微信读书 Skill API，但实现方式不同：**iOS 使用 Scriptable JavaScript 脚本，Android 使用独立的 Kotlin App（APK）**，不需要额外部署服务器。
+
+### 功能一览
+
+| 功能 | iOS · Scriptable | Android · APK |
+| --- | --- | --- |
+| 随机回顾个人划线 | ✅ | ✅ |
+| 按书籍划线数量加权抽取 | ✅ | ✅ |
+| Small / Medium / Large 三种尺寸 | ✅ | ✅ |
+| 可配置刷新周期 | 修改脚本顶部参数 | 在 App 设置页选择 |
+| 书名与作者展示 | ✅ | ✅，可切换作者显示 |
+| 正文字号调整 | 脚本布局参数 | 在 App 设置页选择 |
+| 本地保存 API Key | iOS Keychain | Android Keystore 加密 |
+| 点击返回微信读书 | 支持精确定位，缺失字段时尝试退化跳转 | 尝试打开划线链接，精确定位兼容性依设备而异 |
+
+**小组件共用的设计**：浅蓝渐变背景、左侧蓝色竖线、淡色双引号、正文与底部书籍来源；不同平台会根据各自系统的排版和小组件机制做适配。
+
+## 效果展示
+
+以下为**iOS / Scriptable** 的实际截图；Android 沿用类似的视觉风格，但使用原生小组件，实际尺寸和排版取决于手机的桌面启动器。
+
+<div align="center">
+  <img src="docs/images/widget-preview.webp" width="340" alt="iOS Scriptable 中号微信读书划线小组件">
+  <p><sub>iOS 中号小组件</sub></p>
+  <img src="docs/images/deeplink-demo.gif" width="210" alt="iOS 点击小组件跳回微信读书原文的演示">
+  <p><sub>iOS 点击跳转演示（不代表 Android 精确跳转已获验证）</sub></p>
+</div>
+
+---
+
+## 下载与安装
+
+从 **[GitHub Releases](https://github.com/ma-tie/WeReadHighlights/releases/latest)** 下载适合自己平台的文件。一个 Release 同时提供 iOS 脚本和 Android 正式签名 APK。
+
+| 平台 | 下载文件 | 适用方式 |
+| --- | --- | --- |
+| **iOS** | `WeReadHighlights.js` | 在 Scriptable 中导入并添加小组件 |
+| **Android** | `WeReadHighlights-Android-v<Android版本>.apk` | 安装独立 App 后添加小组件 |
+| 校验 | `SHA256SUMS.txt` | 核对两个下载文件的 SHA-256 |
+
+当前首个双平台正式版为 **[v0.2.3](https://github.com/ma-tie/WeReadHighlights/releases/tag/v0.2.3)**。
+
+### 通用准备：微信读书 API Key
+
+两个平台都需要你自己的微信读书 Skill API Key：
+
+1. 打开 **[微信读书 Skills 页面](https://weread.qq.com/r/weread-skills)**；
+2. 获取以 `wrk-` 开头的 API Key；
+3. 首次运行 iOS 脚本或 Android App 时输入。
+
+API Key 是个人访问凭据。**请勿将其写入公开仓库、发送给他人或放在截图中。** 项目直接请求微信读书 Skill Gateway，不需要自建服务端。
+
+### iOS 安装
+
+**要求：** iPhone、[Scriptable](https://apps.apple.com/us/app/scriptable/id1405459188) 和微信读书。
+
+1. 安装并打开 Scriptable。
+2. 从 [Releases](https://github.com/ma-tie/WeReadHighlights/releases/latest) 下载 `WeReadHighlights.js`，将脚本内容导入 Scriptable，保存为 `WeReadHighlights`。
+3. 在 Scriptable 中**手动运行一次**，根据提示填写 API Key。脚本会读取划线并显示预览；凭据保存在本机 Keychain，之后不必重复填写。
+4. 在 iPhone 主屏幕长按空白区域 → **添加小组件** → 搜索 **Scriptable** → 选择 Small、Medium 或 Large。
+5. 长按刚添加的小组件 → **编辑小组件**，将 **Script** 设为 `WeReadHighlights`，**When Interacting** 保持 **Run Script**。
+
+<div align="center">
+  <img src="docs/images/create-script.webp" width="220" alt="iOS 在 Scriptable 新建脚本">
+  <img src="docs/images/edit-widget.webp" width="220" alt="iOS 编辑 Scriptable 桌面小组件">
+  <img src="docs/images/widget-config.webp" width="220" alt="iOS 选择 WeReadHighlights 脚本">
+  <p><sub>iOS 操作示例：创建脚本、编辑小组件、选择脚本</sub></p>
+</div>
+
+**调整刷新周期：** 在 `WeReadHighlights.js` 顶部修改：
+
+```javascript
+const REFRESH_INTERVAL_HOURS = 4;
+```
+
+支持 `1 / 2 / 3 / 4 / 6 / 8 / 12 / 24` 小时。该设置决定随机划线的**缓存时段**；实际小组件更新仍由 iOS 调度，不保证整点刷新。
+
+### Android 安装
+
+**要求：** Android 8.0（API 26）或更高版本、微信读书，以及允许安装下载的 APK。
+
+1. 在 [Releases](https://github.com/ma-tie/WeReadHighlights/releases/latest) 下载名称包含 `Android` 的 **Release APK**（不是 Debug APK）。
+2. 在手机中打开 APK，按系统提示允许该浏览器或文件管理器**安装未知应用**，完成安装。
+3. 打开 **WeReadHighlights**，输入 `wrk-` 开头的 API Key，点击 **保存密钥并同步**。
+4. 在 App 中根据需要设置**刷新周期**（1 / 2 / 3 / 4 / 6 / 8 / 12 / 24 小时）、**正文字号**（紧凑 / 标准 / 舒展）、**是否显示作者**。
+5. 长按安卓桌面空白处 → **小组件 / Widgets** → 选择 **WeReadHighlights 小号、中号或大号**，拖到桌面。
+
+Android 12 及以上版本中，三种组件的期望网格尺寸分别为 **2×2、4×2、4×4**；实际占用列数受桌面启动器设置影响，不保证所有品牌完全一致。App 中的 **换一句划线** 可以立即请求新的摘录。
+
+**注意：** Android 后台刷新由 WorkManager 请求，省电策略可能延后执行。Android 版会尝试打开对应微信读书链接，但不同安卓设备与微信读书版本对精确定位的支持尚不能保证。
+
+已有 Debug 版用户首次切换到正式签名 APK 时，可能需要先卸载 Debug 版（这会清除已存储的 API Key、缓存和设置）。**后续同签名的正式版可正常覆盖升级**，只需满足 Android 的版本号要求。
+
+Android 专项开发、构建和问题排查见 **[android/README.md](android/README.md)**。
+
+---
+
+## 工作原理
+
+```text
+微信读书 Skill API
+       ↓
+读取有个人划线的书籍
+       ↓
+依据 noteCount 加权随机选书
+       ↓
+从书内个人划线随机抽取一句
+       ↓
+按当前刷新时段缓存
+       ↓
+iOS Scriptable / Android 原生 Widget 展示
+       ↓
+点击后尝试打开微信读书对应链接
+```
+
+选择书籍时，项目参考微信读书返回的 `noteCount` 进行加权，随后在选中书籍的有效划线中均匀抽取。这是为了尽量避免划线数量少的书与划线数量多的书获得相同的抽取机会；**若 `noteCount` 与实际可用划线数不同，并不保证每条划线严格等概率**。
+
+不同刷新时段之间采用**有放回随机抽样**：前后两次可能出现同一句。若系统在同一个时段内反复更新，通常会复用缓存；Android App 中手动点击“换一句划线”则会主动重新抽取。
+
+三种尺寸的正文会按可用空间截断，**不会修改原始划线数据**。Small 仅显示书名，Medium / Large 可以显示书名和作者。
+
+## 版本与发布
+
+本仓库将 **GitHub Release** 作为双平台的统一下载入口，但**平台版本号独立维护**：
+
+| 版本类型 | 位置 | 何时更新 |
+| --- | --- | --- |
+| 整体发布批次 | 根目录 `VERSION`，Git 标签 `vX.Y.Z` | 任一平台有新版本需要发布时 |
+| iOS 脚本版本 | `WeReadHighlights.js` 中的 `APP_VERSION` | iOS 脚本发生变化时 |
+| Android 应用版本 | `android/app/build.gradle.kts` 中的 `versionName` / `versionCode` | Android 应用发生变化时，两个值都更新 |
+
+例如，GitHub Release **v0.2.4** 可以包含 **iOS 0.2.4 + Android 0.2.3**。即使某个平台没有更新，Release 仍会附带它的当前稳定文件，便于用户在同一页面下载。
+
+发布工作流会校验版本格式、构建并验证 Android 签名、附带 iOS 脚本与校验文件。正式发布由匹配 `VERSION` 的标签触发，或由特定的发布合并提交触发。
+
+**发行说明及历史版本：** [GitHub Releases](https://github.com/ma-tie/WeReadHighlights/releases)。
+
+## 隐私与安全
+
+- iOS 的 API Key 与 `userVid` 保存在 Scriptable 可访问的 Keychain；Android API Key 通过 Android Keystore 保护并保存在本机。
+- 个人划线缓存存放在各自设备的本地应用存储中；项目不要求注册额外账号或部署自有服务器。
+- API Key 用于调用微信读书 Skill API，不应提交到 GitHub。若怀疑凭据泄露，建议立即更换。
+- GitHub Releases 发布的是脚本与签名 APK，不包含用户的私人 API Key 或划线缓存。
+
+## 常见问题
+
+<details>
+<summary><strong>为什么没有按设置的时间准点换句子？</strong></summary>
+
+iOS 和 Android 都不能保证桌面小组件精确准点更新。iOS 根据系统策略安排刷新，Android 的 WorkManager 也会受到后台与省电策略限制。刷新周期更接近内容的缓存/更新频率，而不是严格定时器。
+
+</details>
+
+<details>
+<summary><strong>为什么有时连续两次看到同一句话？</strong></summary>
+
+项目采用有放回随机抽样，不同刷新时段之间可能抽到相同内容，这不是缓存错误。
+
+</details>
+
+<details>
+<summary><strong>点击小组件为什么只打开书籍，没有精准定位到划线？</strong></summary>
+
+精确跳转依赖 `bookId`、`chapterUid`、`range`、`userVid` 等字段。数据缺失时可能退化为书籍级跳转；Android 是否支持该深度链接，还取决于微信读书版本及系统处理方式。
+
+</details>
+
+<details>
+<summary><strong>为什么长句子显示不全？</strong></summary>
+
+小组件只展示当前尺寸能够容纳的内容，长句会显示省略号。Small / Medium 设计上最多约 4 行，Large 最多约 9 行；实际可见内容也会受到字体大小、设备尺寸和系统排版影响。
+
+</details>
+
+<details>
+<summary><strong>为什么 Android 更新 APK 时提示安装失败？</strong></summary>
+
+请先确认下载的是正式签名的 Release APK。Debug 版可能使用不同签名；如果提示 `INSTALL_FAILED_UPDATE_INCOMPATIBLE`，通常需要先卸载旧的 Debug 版，再安装正式版（会丢失该 App 的本地数据）。已安装正式版的用户通常可在相同包名与签名、较新 `versionCode` 下直接升级。
+
+</details>
+
+## 开发与贡献
+
+```text
+WeReadHighlights/
+├── WeReadHighlights.js           # iOS / Scriptable
+├── android/                      # Android / Kotlin 源码与构建说明
+│   └── README.md
+├── .github/workflows/            # Debug APK 和双平台签名发布
+├── VERSION                       # GitHub Release 发布批次
+├── docs/images/                  # iOS 截图与演示资源
+├── tools/                        # iOS 源码 PDF 导出等维护工具
+├── README.md
+└── LICENSE
+```
+
+- **iOS 开发：** 修改仓库根目录 `WeReadHighlights.js`。
+- **Android 开发：** 阅读 [Android 开发说明](android/README.md)，使用 Android Studio 或 Gradle 构建。
+- **iOS 源码 PDF 导出（维护者工具）：** 安装 `tools/requirements.txt`，运行 `python3 tools/export_source_pdf.py` 生成 `WeReadHighlights.pdf`。生成的 PDF 不随每次发布自动附带。
+- 欢迎通过 [Issues](https://github.com/ma-tie/WeReadHighlights/issues) 与 [Pull Requests](https://github.com/ma-tie/WeReadHighlights/pulls) 反馈问题或参与开发。
+
+## 许可证
+
+本项目基于 [MIT License](LICENSE) 开源。
