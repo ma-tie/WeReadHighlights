@@ -2,22 +2,25 @@
 
 # 📚 WeReadHighlights
 
-**把微信读书里曾经划过的句子，重新带回你的 iPhone 桌面。**
+**把微信读书里曾经划过的句子，重新带回你的 iPhone 和 Android 桌面。**
 
 随机展示你在微信读书中的个人划线，按设定周期自动更新；点击小组件，可直接跳回微信读书中的原文位置。
 
 ![iOS](https://img.shields.io/badge/iOS-%E5%B0%8F%E7%BB%84%E4%BB%B6-000000?logo=apple&logoColor=white)
+![Android](https://img.shields.io/badge/Android-APK-3DDC84?logo=android&logoColor=white)
 ![Scriptable](https://img.shields.io/badge/Scriptable-JavaScript-2F80ED)
 ![WeRead](https://img.shields.io/badge/微信读书-Highlights-20B875)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 </div>
 
+> **双平台下载**：从 [GitHub Releases](https://github.com/ma-tie/WeReadHighlights/releases) 选择 **iOS 的 `WeReadHighlights.js`** 或 **Android 正式签名 APK**。开发代码分别位于 [WeReadHighlights.js](WeReadHighlights.js) 与 [android/](android/)。
+
 ---
 
 ## ✨ 它能做什么？
 
-WeReadHighlights 是一个基于 **Scriptable + 微信读书 Skill API** 的 iPhone 小组件。
+WeReadHighlights 是一款微信读书划线回顾小组件：iOS 使用 **Scriptable**，Android 使用独立 **Kotlin APK**，都通过微信读书 Skill API 获取个人划线。
 
 它会从你自己的微信读书划线中随机抽取一条，在 iPhone 主屏幕小组件中展示。刷新周期可以在脚本顶部自行配置，默认每 4 小时更新一次。
 
@@ -80,6 +83,31 @@ iPhone 小组件展示
 当前实现会先按微信读书返回的 <code>noteCount</code> 对书籍进行加权，再从选中书籍的个人划线中均匀随机一条。这样避免“每本书概率相同”导致划线很少的书被过度抽中。
 
 同一刷新时段内会使用缓存，因此系统多次刷新小组件时不会不断换句子。进入下一个时段后重新随机，属于**独立、有放回抽样**。
+
+---
+
+# 📦 下载与跨平台版本管理
+
+**[GitHub Releases：下载稳定版](https://github.com/ma-tie/WeReadHighlights/releases/latest)**
+
+每次发布都包含 iOS 和 Android 两个平台的文件，下载同一个 Release 下适合自己设备的版本：
+
+| 平台 | 附件 | 安装方式 |
+| --- | --- | --- |
+| iOS | `WeReadHighlights.js` | 导入 Scriptable，添加脚本小组件 |
+| Android | `WeReadHighlights-Android-v<Android版本>.apk` | 安装 APK，打开 App，添加桌面小组件 |
+| 校验 | `SHA256SUMS.txt` | 对照两份文件的 SHA-256 校验和 |
+
+**版本号分开维护：** 仓库的 `VERSION` 是**发布批次号**（例如 GitHub Release `v0.2.4`）；iOS 脚本使用 `APP_VERSION`；Android 使用 Gradle `versionName` 和 `versionCode`。只有相应平台发生变化，才递增该平台版本号。一个 Release 仍会附带两个平台最新的稳定文件，未改动的平台可以继续保持旧版本号。CI 检查发布版本格式与标签，但**不会强制两个平台的版本相等**。
+
+Android 最低支持 Android 8.0，提供 Small / Medium / Large 三种尺寸、可调刷新周期及字号。点击划线的精确跳转效果可能因微信读书安卓版和划线元数据而异。
+
+## Android 安装
+
+1. 从 Releases 下载名字包含 `Android` 的 `.apk`，用文件管理器打开并按系统提示允许安装。
+2. 首次运行输入自己的 `wrk-` 微信读书 Skill API Key。
+3. 长按桌面空白区域 → 小组件 → 选择 WeReadHighlights 小号、中号或大号。
+4. 打开 App 可调整刷新周期、字号和作者显示。
 
 ---
 

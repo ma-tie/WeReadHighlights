@@ -8,6 +8,10 @@
 // - 支持 Small / Medium / Large 三种主屏小组件布局
 // ======================================================
 
+// iOS Scriptable version, independent of Android and repository Release tags.
+// This is separate from the WeRead Skill API's own SKILL_VERSION.
+const APP_VERSION = "0.2.3";
+
 const API_URL = "https://i.weread.qq.com/api/agent/gateway";
 const SKILL_VERSION = "1.0.5";
 const SKILL_VERSION_KEY = "weread_skill_version";

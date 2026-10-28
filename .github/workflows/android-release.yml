@@ -1,0 +1,181 @@
+name: WeReadHighlights signed multiplatform release
+
+on:
+  push:
+    branches:
+      - feature/android-app
+      - main
+    tags:
+      - 'v*'
+    paths:
+      - 'android/**'
+      - 'WeReadHighlights.js'
+      - 'VERSION'
+      - '.github/workflows/android-release.yml'
+  workflow_dispatch:
+
+# One GitHub Release represents a repository snapshot. iOS/Android track
+# independent versions: VERSION is the release number, not app versionName.
+# Publish on a deliberately tagged push or a main merge marked [publish].
+concurrency:
+  group: weread-release-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  signed-apk:
+    if: >-
+      startsWith(github.ref, 'refs/tags/v') ||
+      github.ref == 'refs/heads/feature/android-app' ||
+      (github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[publish]'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Install Android SDK components
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -maxdepth 3 -type f -name sdkmanager | sort -V | tail -n 1)"
+          test -n "$SDKMANAGER" && test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+      - name: Validate release snapshot and independent platform versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 android/tools/validate_widget_layouts.py
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          version = Path("VERSION").read_text(encoding="utf-8").strip()
+          gradle = Path("android/app/build.gradle.kts").read_text(encoding="utf-8")
+          ios = Path("WeReadHighlights.js").read_text(encoding="utf-8")
+          android_version = gradle.split('versionName = "', 1)[1].split('"', 1)[0]
+          ios_version = ios.split('const APP_VERSION = "', 1)[1].split('"', 1)[0]
+          import re
+          for kind, value in (("Release", version), ("Android", android_version), ("iOS", ios_version)):
+              assert re.fullmatch(r"\d+\.\d+\.\d+", value), f"Invalid {kind} version: {value}"
+          print(f"Release snapshot v{version}: iOS v{ios_version} / Android v{android_version}")
+          if os.environ.get("GITHUB_REF", "").startswith("refs/tags/"):
+              assert os.environ["GITHUB_REF_NAME"] == "v" + version, (
+                  "The tag must equal v followed by the shared VERSION"
+              )
+          print("Validated release snapshot and independent app versions")
+          PY
+      - name: Build signed release APK
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for name in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
+            if test -z "${!name:-}"; then
+              echo "::error::Missing signing secret: $name"
+              exit 1
+            fi
+          done
+          SIGNING_FILE="$(mktemp "$RUNNER_TEMP/weread-release.XXXXXX.jks")"
+          chmod 600 "$SIGNING_FILE"
+          trap 'rm -f "$SIGNING_FILE"' EXIT
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$SIGNING_FILE"
+          test -s "$SIGNING_FILE"
+          export ANDROID_SIGNING_STORE_FILE="$SIGNING_FILE"
+          gradle -p android :app:testDebugUnitTest :app:assembleRelease --no-daemon --stacktrace
+
+          ANDROID_VERSION="$(grep -m1 'versionName = ' android/app/build.gradle.kts | cut -d '"' -f2)"
+          test -n "$ANDROID_VERSION"
+          mkdir -p dist
+          cp android/app/build/outputs/apk/release/app-release.apk "dist/WeReadHighlights-Android-v${ANDROID_VERSION}.apk"
+          cp WeReadHighlights.js dist/WeReadHighlights.js
+      - name: Verify release signature and create checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="$(find dist -maxdepth 1 -name '*.apk' -print -quit)"
+          test -n "$APK"
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK"
+          (cd dist && sha256sum *.apk WeReadHighlights.js > SHA256SUMS.txt)
+          cat dist/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WeReadHighlights-multiplatform-v${{ github.sha }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 90
+
+  github-release:
+    if: >-
+      startsWith(github.ref, 'refs/tags/v') ||
+      (github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[publish]'))
+    needs: signed-apk
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: WeReadHighlights-multiplatform-v${{ github.sha }}
+          path: dist
+      - name: Publish shared iOS + Android GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          RELEASE_VERSION="$(cat VERSION)"
+          ANDROID_VERSION="$(grep -m1 'versionName = ' android/app/build.gradle.kts | cut -d '"' -f2)"
+          IOS_VERSION="$(grep -m1 '^const APP_VERSION = ' WeReadHighlights.js | cut -d '"' -f2)"
+          TAG="v$RELEASE_VERSION"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "::error::Release $TAG already exists; increment the shared version for future releases."
+            exit 1
+          fi
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            test "$GITHUB_REF_NAME" = "$TAG"
+            TAG_OPTS=(--verify-tag)
+          else
+            test "$GITHUB_REF" = refs/heads/main
+            TAG_OPTS=(--target "$GITHUB_SHA")
+          fi
+
+          cat > release-notes.md <<'EOF'
+          ## WeReadHighlights · iOS + Android
+
+          One repository release containing the latest stable builds of both platforms.
+
+          | Platform | App version | Download |
+          | --- | --- | --- |
+          | iOS / Scriptable | IOSVERSION | `WeReadHighlights.js` |
+          | Android / APK | ANDROIDVERSION | `WeReadHighlights-Android-vANDROIDVERSION.apk` |
+
+          - **iOS**: import the script into [Scriptable](https://apps.apple.com/app/scriptable/id1405459188) and configure the home-screen widget.
+          - **Android**: install the signed APK on Android 8.0+ and add the Small, Medium, or Large widget.
+          - **SHA256SUMS.txt** contains checksums for both download files.
+
+          A platform's version only changes when that platform changes. The
+          GitHub Release number describes this two-platform distribution snapshot.
+
+          Android exact-position deep linking depends on the installed WeRead app and the available quote metadata.
+          EOF
+          sed -i "s/IOSVERSION/$IOS_VERSION/g; s/ANDROIDVERSION/$ANDROID_VERSION/g" release-notes.md
+          gh release create "$TAG" \
+            dist/WeReadHighlights.js \
+            dist/WeReadHighlights-Android-v"${ANDROID_VERSION}".apk \
+            dist/SHA256SUMS.txt \
+            --title "WeReadHighlights v$RELEASE_VERSION · iOS + Android" \
+            --notes-file release-notes.md \
+            "${TAG_OPTS[@]}"

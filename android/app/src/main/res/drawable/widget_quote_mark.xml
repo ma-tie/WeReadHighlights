@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Platform-independent outline for the opening quotation decoration.
+  Unlike a TextView containing “, the shape and placement are independent
+  of Android's font fallback, font padding and baseline metrics.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="44dp"
+    android:height="35dp"
+    android:viewportWidth="44"
+    android:viewportHeight="35">
+    <path
+        android:fillColor="#31A7F4"
+        android:fillAlpha="0.14"
+        android:pathData="M15,5 C9,9 5,14 5,21 C5,26 8,29 12,29 C16,29 19,26 19,22 C19,18 16,16 13,16 C12,16 11,16.5 10.5,17 C11.2,13 14,10 17,8 Z M35,5 C29,9 25,14 25,21 C25,26 28,29 32,29 C36,29 39,26 39,22 C39,18 36,16 33,16 C32,16 31,16.5 30.5,17 C31.2,13 34,10 37,8 Z" />
+</vector>
