@@ -7,6 +7,12 @@ on:
     paths:
       - 'android/**'
       - '.github/workflows/android-debug.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'android/**'
+      - '.github/workflows/android-debug.yml'
   workflow_dispatch:
 
 permissions:
