@@ -32,9 +32,7 @@ gradle -p android :app:assembleDebug
 
 APK: `android/app/build/outputs/apk/debug/app-debug.apk`.
 
-You can also open **GitHub → Actions → Android debug APK** on the development
-branch and download the `WeReadHighlights-Android-debug` artifact from a
-successful run. This is a debug APK, **not a signed release**.
+Once the branch's **push-triggered GitHub Actions** job succeeds, open **GitHub → Actions → Android debug APK** and download the `WeReadHighlights-Android-debug` artifact. Manual `workflow_dispatch` from this branch alone is not available unless the workflow also exists on the default branch. This is a debug APK, **not a signed release**.
 
 ## Using
 
