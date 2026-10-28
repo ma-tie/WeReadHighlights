@@ -12,15 +12,17 @@
         android:layout_marginBottom="13dp"
         android:background="@drawable/widget_accent"
         android:contentDescription="@null" />
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="50dp"
-        android:layout_marginTop="39dp"
-        android:text="“"
-        android:includeFontPadding="false"
-        android:textColor="#D6ECF9"
-        android:textSize="104sp" />
+    <!-- Top-left opening quotes sit just beside the accent line, like iOS.
+         An ImageView avoids TextView baseline/font fallback differences. -->
+    <ImageView
+        android:id="@+id/quote_mark"
+        android:layout_width="48dp"
+        android:layout_height="39dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="12dp"
+        android:src="@drawable/widget_quote_mark"
+        android:scaleType="fitXY"
+        android:contentDescription="@null" />
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
