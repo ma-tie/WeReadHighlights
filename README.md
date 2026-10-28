@@ -55,8 +55,6 @@ WeReadHighlights 是一个开源的**微信读书个人划线桌面小组件**�
 | **Android** | `WeReadHighlights-Android-v<Android版本>.apk` | 安装独立 App 后添加小组件 |
 | 校验 | `SHA256SUMS.txt` | 核对两个下载文件的 SHA-256 |
 
-当前首个双平台正式版为 **[v0.2.3](https://github.com/ma-tie/WeReadHighlights/releases/tag/v0.2.3)**。
-
 ### 通用准备：微信读书 API Key
 
 两个平台都需要你自己的微信读书 Skill API Key：
