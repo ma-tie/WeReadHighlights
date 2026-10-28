@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="15dp"
+    android:orientation="vertical"
+    android:background="@drawable/widget_background">
+    <TextView
+        android:id="@+id/quote_text"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:text="打开 WeReadHighlights 设置 API Key"
+        android:textColor="#263A48"
+        android:textSize="18sp"
+        android:maxLines="8"
+        android:ellipsize="end"
+        android:gravity="center_vertical" />
+    <TextView
+        android:id="@+id/source_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#257EAF"
+        android:textSize="12sp"
+        android:gravity="end"
+        android:maxLines="1"
+        android:ellipsize="end" />
+</LinearLayout>
