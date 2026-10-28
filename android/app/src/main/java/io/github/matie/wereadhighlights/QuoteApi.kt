@@ -5,7 +5,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
-import kotlin.random.Random
 
 /**
  * Uses the same WeChat Reading Skill Gateway and weighted sampling as the iOS script.
@@ -90,21 +89,15 @@ object QuoteApi {
     }
 
     private fun chooseBook(books: List<JSONObject>): JSONObject {
-        val total = books.sumOf { it.optInt("noteCount", 0).coerceAtLeast(0).toLong() }
-        require(total > 0) { "没有找到可以随机抽取的划线" }
-        var chance = Random.nextDouble(total.toDouble())
-        for (book in books) {
-            chance -= book.optInt("noteCount", 0).coerceAtLeast(0)
-            if (chance < 0) return book
-        }
-        return books.last()
+        val weights = books.map { it.optInt("noteCount", 0) }
+        return books[WeightedSampler.pickIndex(weights)]
     }
 
     private fun getVid(context: Context, books: List<JSONObject>, preferred: JSONObject): String? {
         QuoteStore.userVid(context)?.let { return it }
         val ordered = listOf(preferred) + books.filter { it.optString("bookId") != preferred.optString("bookId") }
         // A missing personal review must not prevent showing a quote.
-        for (book in ordered.take(20)) {
+        for (book in ordered.take(8)) {
             try {
                 val reviews = call(
                     context, "/review/list/mine",
@@ -130,7 +123,7 @@ object QuoteApi {
     private fun bookmarkUrl(
         bookId: String, chapter: Any?, range: String, vid: String?
     ): String? {
-        if (chapter == null || vid.isNullOrBlank()) return null
+        if (chapter == null || chapter == JSONObject.NULL || vid.isNullOrBlank()) return null
         val parts = range.split("-")
         if (parts.size != 2) return null
         fun esc(value: String) = java.net.URLEncoder.encode(value, "UTF-8")
