@@ -26,8 +26,21 @@ for layout, info, columns, rows in widgets:
         node_id = node.attrib.get(ns + "id", "")
         if node_id:
             found.add(node_id)
-    for required in ("widget_root", "quote_text", "source_text"):
+    for required in ("widget_root", "quote_text", "source_title", "source_author"):
         assert any(item.endswith("/" + required) for item in found), (layout, required)
+    # The book title must share the footer with a dedicated, width-limited
+    # author label; a long title should ellipsize before the author's area.
+    titles = [node for node in tree.iter() if node.attrib.get(ns + "id", "").endswith("/source_title")]
+    authors = [node for node in tree.iter() if node.attrib.get(ns + "id", "").endswith("/source_author")]
+    assert len(titles) == 1 and len(authors) == 1, layout
+    title, author = titles[0], authors[0]
+    assert title.attrib.get(ns + "layout_width") == "0dp", layout
+    assert title.attrib.get(ns + "layout_weight") == "1", layout
+    assert title.attrib.get(ns + "ellipsize") == "end", layout
+    assert author.attrib.get(ns + "maxWidth", "").endswith("dp"), layout
+    assert title in list(tree.iter()) and author in list(tree.iter()), layout
+    mark = [node for node in tree.iter() if node.attrib.get(ns + "text") == "“"]
+    assert len(mark) == 1 and mark[0].attrib[ns + "textColor"] == "#D6ECF9", layout
     meta = ET.parse(root / "xml" / (info + ".xml")).getroot()
     assert meta.attrib[ns + "targetCellWidth"] == str(columns), info
     assert meta.attrib[ns + "targetCellHeight"] == str(rows), info
