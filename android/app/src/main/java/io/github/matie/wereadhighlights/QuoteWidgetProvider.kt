@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.TypedValue
+import android.view.View
 import android.widget.RemoteViews
 
 /** Medium keeps the original receiver name, so previously installed widgets survive upgrades. */
@@ -38,14 +39,15 @@ open class QuoteWidgetProvider : AppWidgetProvider() {
             val provider: Class<out AppWidgetProvider>,
             val layout: Int,
             val bodySp: Float,
-            val sourceSp: Float,
+            val sourceTitleSp: Float,
+            val sourceAuthorSp: Float,
             val showAuthor: Boolean
         )
 
         private val styles = listOf(
-            Style(QuoteWidgetSmallProvider::class.java, R.layout.widget_quote_small, 16f, 12f, false),
-            Style(QuoteWidgetProvider::class.java, R.layout.widget_quote, 19f, 13f, true),
-            Style(QuoteWidgetLargeProvider::class.java, R.layout.widget_quote_large, 23f, 16f, true)
+            Style(QuoteWidgetSmallProvider::class.java, R.layout.widget_quote_small, 16f, 12f, 11f, false),
+            Style(QuoteWidgetProvider::class.java, R.layout.widget_quote, 19f, 14f, 12f, true),
+            Style(QuoteWidgetLargeProvider::class.java, R.layout.widget_quote_large, 23f, 17f, 14f, true)
         )
 
         fun renderAll(context: Context) {
@@ -64,18 +66,27 @@ open class QuoteWidgetProvider : AppWidgetProvider() {
                 for (id in ids) {
                     val views = RemoteViews(context.packageName, style.layout)
                     views.setTextViewText(R.id.quote_text, text)
-                    val source = quote?.let {
-                        "《${it.title}》" +
-                            if (style.showAuthor && allowAuthor && it.author.isNotBlank()) {
-                                " · ${it.author}"
-                            } else ""
-                    }.orEmpty()
-                    views.setTextViewText(R.id.source_text, source)
+                    views.setTextViewText(
+                        R.id.source_title, quote?.let { "《${it.title}》" }.orEmpty()
+                    )
+                    // A separate author view reserves its width, so longer titles
+                    // are ellipsized instead of making the attribution disappear.
+                    val author = quote?.author.orEmpty()
+                    val displayAuthor = style.showAuthor && allowAuthor && author.isNotBlank()
+                    views.setViewVisibility(
+                        R.id.source_author, if (displayAuthor) View.VISIBLE else View.GONE
+                    )
+                    views.setTextViewText(
+                        R.id.source_author, if (displayAuthor) " · $author" else ""
+                    )
                     views.setTextViewTextSize(
                         R.id.quote_text, TypedValue.COMPLEX_UNIT_SP, style.bodySp * scale
                     )
                     views.setTextViewTextSize(
-                        R.id.source_text, TypedValue.COMPLEX_UNIT_SP, style.sourceSp
+                        R.id.source_title, TypedValue.COMPLEX_UNIT_SP, style.sourceTitleSp
+                    )
+                    views.setTextViewTextSize(
+                        R.id.source_author, TypedValue.COMPLEX_UNIT_SP, style.sourceAuthorSp
                     )
 
                     val openIntent = Intent(context, OpenQuoteActivity::class.java)
