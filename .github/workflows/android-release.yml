@@ -1,0 +1,119 @@
+name: Android signed release APK
+
+on:
+  push:
+    branches:
+      - feature/android-app
+    tags:
+      - 'android-v*'
+    paths:
+      - 'android/**'
+      - '.github/workflows/android-release.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: android-release-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  signed-apk:
+    # Never expose release signing credentials to untrusted pull requests.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Install Android SDK components
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -maxdepth 3 -type f -name sdkmanager | sort -V | tail -n 1)"
+          test -n "$SDKMANAGER" && test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+      - name: Validate widget resources
+        run: python3 android/tools/validate_widget_layouts.py
+      - name: Check release tag matches APK version
+        if: startsWith(github.ref, 'refs/tags/android-v')
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(sed -n 's/.*versionName = "\([^"]*\)".*/\1/p' android/app/build.gradle.kts | head -n 1)"
+          test -n "$VERSION"
+          test "$GITHUB_REF_NAME" = "android-v$VERSION" || {
+            echo "::error::Tag does not match android/app/build.gradle.kts versionName"
+            exit 1
+          }
+      - name: Build signed release APK
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for name in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
+            if test -z "${!name:-}"; then
+              echo "::error::Missing GitHub Actions secret: $name"
+              exit 1
+            fi
+          done
+          SIGNING_FILE="$(mktemp "$RUNNER_TEMP/weread-release.XXXXXX.jks")"
+          chmod 600 "$SIGNING_FILE"
+          trap 'rm -f "$SIGNING_FILE"' EXIT
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$SIGNING_FILE"
+          test -s "$SIGNING_FILE"
+          export ANDROID_SIGNING_STORE_FILE="$SIGNING_FILE"
+          gradle -p android :app:testDebugUnitTest :app:assembleRelease --no-daemon --stacktrace
+
+          VERSION="$(sed -n 's/.*versionName = "\([^"]*\)".*/\1/p' android/app/build.gradle.kts | head -n 1)"
+          test -n "$VERSION"
+          mkdir -p dist
+          cp android/app/build/outputs/apk/release/app-release.apk "dist/WeReadHighlights-v${VERSION}-release.apk"
+      - name: Verify APK signing certificate
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="$(find dist -maxdepth 1 -name '*.apk' -print -quit)"
+          test -n "$APK"
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK"
+          shasum -a 256 "$APK"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WeReadHighlights-Android-signed-release
+          path: dist/*.apk
+          if-no-files-found: error
+          retention-days: 90
+
+  github-release:
+    if: startsWith(github.ref, 'refs/tags/android-v')
+    needs: signed-apk
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: WeReadHighlights-Android-signed-release
+          path: dist
+      - name: Publish tagged GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#android-v}"
+          gh release create "$GITHUB_REF_NAME" dist/*.apk \
+            --verify-tag \
+            --title "WeReadHighlights Android v$VERSION" \
+            --generate-notes
