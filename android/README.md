@@ -13,6 +13,10 @@ version still needs a new emulator check.
 - Fetch personal notebooks, sample books weighted by `noteCount`, and sample
   a nonempty personal bookmark.
 - Cache the current quote and preserve it when offline or when the API fails.
+- Refined 0.2.3 quotation mark: three widgets and the settings preview use
+  the same small double-curved opening quote **vector**, immediately to the
+  right of the blue accent's top. Rendering no longer depends on the
+  font-specific baseline and glyph shape of a TextView containing “.
 - Refined 0.2.2 styling: the translucent opening quote is smaller, lighter,
   and shifted away from the blue accent. Book title and author now use separate
   TextViews so long titles ellipsize before the author disappears. Small
