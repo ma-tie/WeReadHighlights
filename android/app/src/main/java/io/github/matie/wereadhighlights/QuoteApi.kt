@@ -133,7 +133,7 @@ object QuoteApi {
     }
 
     fun fetch(context: Context, force: Boolean = false): Quote {
-        val slot = QuoteStore.currentSlot()
+        val slot = QuoteStore.currentSlot(context)
         val cached = QuoteStore.cached(context)
         if (!force && cached?.slot == slot) return cached
 
