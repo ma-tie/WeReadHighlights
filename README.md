@@ -13,6 +13,8 @@
 
 </div>
 
+> **Android 实验版**：已在 [feature/android-app](https://github.com/ma-tie/WeReadHighlights/tree/feature/android-app) 分支的 [android/](android/) 目录开发独立 APK。当前还需确认 CI 编译以及安卓微信读书跳转兼容性。iOS Scriptable 版本不受影响。
+
 ---
 
 ## ✨ 它能做什么？
