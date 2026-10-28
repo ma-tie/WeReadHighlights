@@ -48,7 +48,69 @@ gradle -p android :app:assembleDebug
 
 APK: `android/app/build/outputs/apk/debug/app-debug.apk`.
 
-Once the branch's **push-triggered GitHub Actions** job succeeds, open **GitHub → Actions → Android debug APK** and download the `WeReadHighlights-Android-debug` artifact. Manual `workflow_dispatch` from this branch alone is not available unless the workflow also exists on the default branch. This is a debug APK, **not a signed release**.
+Two workflows are available on `feature/android-app`:
+
+- **Android debug APK** builds a debug-signed test APK.
+- **Android signed release APK** uses repository GitHub Actions Secrets to build
+  and verify a consistently signed Release APK. On branch pushes it **only
+  uploads an Actions artifact**; it does not create a public GitHub Release.
+  GitHub Releases are published only after an explicit matching
+  `android-v<versionName>` tag is pushed, and the signed build succeeds.
+
+Download the `WeReadHighlights-Android-signed-release` artifact from the
+successful **Android signed release APK** workflow. It contains a file named
+`WeReadHighlights-v0.2.3-release.apk` for the current version.
+
+### Release signing setup
+
+The signing key must be generated and safely backed up **outside Git**. Configure
+these **repository-level** GitHub Actions Secrets under
+**Settings → Secrets and variables → Actions**:
+
+| Secret | Value |
+|---|---|
+| `ANDROID_KEYSTORE_BASE64` | Base64 of the full PKCS12/JKS keystore file |
+| `ANDROID_KEYSTORE_PASSWORD` | Keystore password |
+| `ANDROID_KEY_ALIAS` | Keystore alias (e.g. `wereadhighlights`) |
+| `ANDROID_KEY_PASSWORD` | Signing key password (usually same as keystore password) |
+
+Example for creating the Base64 value locally on macOS (do **not** paste the
+result into a chat or commit it into source control):
+
+```sh
+base64 -i "$HOME/WeReadHighlights-signing/wereadhighlights-release.jks" | pbcopy
+```
+
+The Gradle release build refuses to run without all signing credentials.
+The workflow decodes the keystore into a temporary runner file, signs the APK,
+checks its signing certificate with `apksigner verify`, and uploads the APK.
+No keystore or plaintext credentials should ever be committed. Protect access
+to the repository and CI workflows because anyone able to modify a signing
+workflow on a trusted branch may be able to abuse repository secrets.
+
+### Publish a GitHub Release
+
+After verifying the intended version and inspecting its signed CI artifact,
+push a matching tag **from the commit containing the release workflow**:
+
+```sh
+git checkout feature/android-app
+git pull
+git tag android-v0.2.3
+git push origin android-v0.2.3
+```
+
+That tag triggers a **new signed build**, verifies the tag matches
+`versionName`, then publishes the APK to GitHub Releases. Do not reuse an
+existing tag for another APK; increment `versionCode` and `versionName`
+for future versions. Tag publication should be deliberate, not a side effect
+of routine development pushes.
+
+**Important:** Debug APKs use a different signing identity. Moving from a
+debug build to the first release APK usually requires uninstalling the debug
+app, which clears locally saved API Keys and preferences. Future release APKs
+signed with the same keystore can update each other without this reset (assuming
+normal Android versioning rules and matching package name).
 
 ## Using
 
@@ -82,12 +144,9 @@ Once the branch's **push-triggered GitHub Actions** job succeeds, open **GitHub 
 - The first launch requires network access. On subsequent failures the last
   cached quote stays visible.
 - No analytics, advertising, external backend, or API Key logging.
-- Debug APK is signed with an automatically generated debug key, **not a stable
-  release signing key**. Installing a later CI debug APK over an older one may
-  fail with `INSTALL_FAILED_UPDATE_INCOMPATIBLE`; for emulator testing,
-  uninstall the old build and install the new APK. This clears saved API Keys,
-  quotes and preferences. A stable release signing setup is needed before
-  distributing seamless updates.
+- Debug APK is signed with an automatically generated debug key and cannot
+  always update a previous debug build. The new consistently signed Release
+  APK supports in-place updates to subsequent releases using the same keystore.
 - No automated Android emulator/device test currently runs in CI.
 
 ## Architecture
