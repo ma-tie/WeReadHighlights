@@ -98,9 +98,45 @@ object QuoteStore {
         prefs(context).edit().putString("user_vid", vid).apply()
     }
 
-    fun currentSlot(): String =
-        SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()) +
-            "-4h-" + (java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY) / 4)
+    val allowedIntervals = listOf(1, 2, 3, 4, 6, 8, 12, 24)
+
+    fun refreshHours(context: Context): Int =
+        prefs(context).getInt("refresh_hours", 4).takeIf { it in allowedIntervals } ?: 4
+
+    fun setRefreshHours(context: Context, hours: Int) {
+        require(hours in allowedIntervals) { "不支持该刷新周期" }
+        prefs(context).edit().putInt("refresh_hours", hours).apply()
+    }
+
+    /** 0 compact, 1 standard, 2 comfortable. */
+    fun fontChoice(context: Context): Int =
+        prefs(context).getInt("font_choice", 1).coerceIn(0, 2)
+
+    fun fontScale(context: Context): Float = when (fontChoice(context)) {
+        0 -> 0.87f
+        2 -> 1.13f
+        else -> 1f
+    }
+
+    fun setFontChoice(context: Context, choice: Int) {
+        require(choice in 0..2)
+        prefs(context).edit().putInt("font_choice", choice).apply()
+    }
+
+    fun showAuthor(context: Context): Boolean =
+        prefs(context).getBoolean("show_author", true)
+
+    fun setShowAuthor(context: Context, enabled: Boolean) {
+        prefs(context).edit().putBoolean("show_author", enabled).apply()
+    }
+
+    /** Matches the iOS time-slot definition; actual system refresh is best-effort. */
+    fun currentSlot(context: Context): String {
+        val interval = refreshHours(context)
+        return SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()) +
+            "-${interval}h-" +
+            (java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY) / interval)
+    }
 
     fun cached(context: Context): Quote? {
         val p = prefs(context)
