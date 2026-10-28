@@ -132,22 +132,6 @@ iOS Scriptable / Android 原生 Widget 展示
 
 三种尺寸的正文会按可用空间截断，**不会修改原始划线数据**。Small 仅显示书名，Medium / Large 可以显示书名和作者。
 
-## 版本与发布
-
-本仓库将 **GitHub Release** 作为双平台的统一下载入口，但**平台版本号独立维护**：
-
-| 版本类型 | 位置 | 何时更新 |
-| --- | --- | --- |
-| 整体发布批次 | 根目录 `VERSION`，Git 标签 `vX.Y.Z` | 任一平台有新版本需要发布时 |
-| iOS 脚本版本 | [`ios/WeReadHighlights.js`](ios/WeReadHighlights.js) 中的 `APP_VERSION` | iOS 脚本发生变化时 |
-| Android 应用版本 | `android/app/build.gradle.kts` 中的 `versionName` / `versionCode` | Android 应用发生变化时，两个值都更新 |
-
-例如，GitHub Release **v0.2.4** 可以包含 **iOS 0.2.4 + Android 0.2.3**。即使某个平台没有更新，Release 仍会附带它的当前稳定文件，便于用户在同一页面下载。
-
-发布工作流会校验版本格式、构建并验证 Android 签名、附带 iOS 脚本与校验文件。正式发布由匹配 `VERSION` 的标签触发，或由特定的发布合并提交触发。
-
-**发行说明及历史版本：** [GitHub Releases](https://github.com/ma-tie/WeReadHighlights/releases)。
-
 ## 隐私与安全
 
 - iOS 的 API Key 与 `userVid` 保存在 Scriptable 可访问的 Keychain；Android API Key 通过 Android Keystore 保护并保存在本机。
@@ -213,6 +197,22 @@ WeReadHighlights/
 - **Android 开发：** 阅读 [Android 开发说明](android/README.md)，使用 Android Studio 或 Gradle 构建。
 - **iOS 源码 PDF 导出（维护者工具）：** 安装 `tools/requirements.txt`，运行 `python3 tools/export_source_pdf.py` 生成 `WeReadHighlights.pdf`。生成的 PDF 不随每次发布自动附带。
 - 欢迎通过 [Issues](https://github.com/ma-tie/WeReadHighlights/issues) 与 [Pull Requests](https://github.com/ma-tie/WeReadHighlights/pulls) 反馈问题或参与开发。
+
+## 版本与发布
+
+本仓库将 **GitHub Release** 作为双平台的统一下载入口，但**平台版本号独立维护**：
+
+| 版本类型 | 位置 | 何时更新 |
+| --- | --- | --- |
+| 整体发布批次 | 根目录 `VERSION`，Git 标签 `vX.Y.Z` | 任一平台有新版本需要发布时 |
+| iOS 脚本版本 | [`ios/WeReadHighlights.js`](ios/WeReadHighlights.js) 中的 `APP_VERSION` | iOS 脚本发生变化时 |
+| Android 应用版本 | `android/app/build.gradle.kts` 中的 `versionName` / `versionCode` | Android 应用发生变化时，两个值都更新 |
+
+例如，GitHub Release **v0.2.4** 可以包含 **iOS 0.2.4 + Android 0.2.3**。即使某个平台没有更新，Release 仍会附带它的当前稳定文件，便于用户在同一页面下载。
+
+发布工作流会校验版本格式、构建并验证 Android 签名、附带 iOS 脚本与校验文件。正式发布由匹配 `VERSION` 的标签触发，或由特定的发布合并提交触发。
+
+**发行说明及历史版本：** [GitHub Releases](https://github.com/ma-tie/WeReadHighlights/releases)。
 
 ## 许可证
 
