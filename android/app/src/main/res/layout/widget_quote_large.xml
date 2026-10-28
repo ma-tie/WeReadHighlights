@@ -15,12 +15,12 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="34dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginStart="50dp"
+        android:layout_marginTop="39dp"
         android:text="“"
         android:includeFontPadding="false"
-        android:textColor="#B4DFF9"
-        android:textSize="130sp" />
+        android:textColor="#D6ECF9"
+        android:textSize="104sp" />
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -49,15 +49,36 @@
             android:layout_marginBottom="9dp"
             android:background="#D5EAF6"
             android:contentDescription="@null" />
-        <TextView
-            android:id="@+id/source_text"
+        <!-- Give the author a reserved, separately styled area so a long title
+             ellipsizes without pushing the author out of view. -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="end"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:includeFontPadding="false"
-            android:textColor="#257EAF"
-            android:textSize="16sp" />
+            android:orientation="horizontal"
+            android:gravity="end|center_vertical">
+            <TextView
+                android:id="@+id/source_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:includeFontPadding="false"
+                android:textColor="#257EAF"
+                android:textSize="17sp" />
+            <TextView
+                android:id="@+id/source_author"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxWidth="150dp"
+                android:gravity="end"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:includeFontPadding="false"
+                android:visibility="gone"
+                android:textColor="#718695"
+                android:textSize="14sp" />
+        </LinearLayout>
     </LinearLayout>
 </FrameLayout>
