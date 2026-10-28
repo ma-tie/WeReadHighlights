@@ -14,7 +14,30 @@
             </intent-filter>
         </activity>
         <receiver
+            android:name=".QuoteWidgetSmallProvider"
+            android:label="WeReadHighlights · 小号"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/quote_widget_small_info" />
+        </receiver>
+        <receiver
+            android:name=".QuoteWidgetLargeProvider"
+            android:label="WeReadHighlights · 大号"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/quote_widget_large_info" />
+        </receiver>
+        <receiver
             android:name=".QuoteWidgetProvider"
+            android:label="WeReadHighlights · 中号"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
