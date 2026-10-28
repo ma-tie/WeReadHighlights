@@ -32,7 +32,8 @@ class MainActivity : Activity() {
 
     private lateinit var statusView: TextView
     private lateinit var previewBody: TextView
-    private lateinit var previewSource: TextView
+    private lateinit var previewTitle: TextView
+    private lateinit var previewAuthor: TextView
     private lateinit var keyField: EditText
     private lateinit var saveButton: TextView
     private lateinit var refreshButton: TextView
@@ -245,12 +246,12 @@ class MainActivity : Activity() {
         })
         frame.addView(TextView(this).apply {
             text = "“"
-            textSize = 96f
-            setTextColor(Color.rgb(193, 227, 246))
+            textSize = 78f
+            setTextColor(Color.rgb(214, 236, 249))
             includeFontPadding = false
         }, FrameLayout.LayoutParams(-2, -2).apply {
-            leftMargin = 30.dp
-            topMargin = 9.dp
+            leftMargin = 52.dp
+            topMargin = 23.dp
         })
         val inner = vertical().apply {
             setPadding(40.dp, 28.dp, 21.dp, 19.dp)
@@ -263,11 +264,30 @@ class MainActivity : Activity() {
         space(inner, 22)
         line(inner)
         space(inner, 10)
-        previewSource = label(inner, "", 13f, blue).apply {
+        val footer = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.END or Gravity.CENTER_VERTICAL
+        }
+        inner.addView(footer, LinearLayout.LayoutParams(-1, -2))
+        previewTitle = TextView(this).apply {
+            textSize = 14f
+            setTextColor(blue)
             gravity = Gravity.END
-            maxLines = 1
+            isSingleLine = true
+            includeFontPadding = false
             ellipsize = TextUtils.TruncateAt.END
         }
+        footer.addView(previewTitle, LinearLayout.LayoutParams(0, -2, 1f))
+        previewAuthor = TextView(this).apply {
+            textSize = 12f
+            setTextColor(Color.rgb(113, 134, 149))
+            gravity = Gravity.END
+            isSingleLine = true
+            includeFontPadding = false
+            ellipsize = TextUtils.TruncateAt.END
+            maxWidth = 118.dp
+        }
+        footer.addView(previewAuthor, LinearLayout.LayoutParams(-2, -2))
     }
 
     private fun renderSettings() {
@@ -288,11 +308,11 @@ class MainActivity : Activity() {
     private fun showCached() {
         val quote = QuoteStore.cached(this)
         previewBody.text = quote?.text ?: "那些值得记住的句子，会在这里重新出现。"
-        previewSource.text = quote?.let {
-            "《${it.title}》" + if (QuoteStore.showAuthor(this) && it.author.isNotBlank()) {
-                " · ${it.author}"
-            } else ""
-        }.orEmpty()
+        previewTitle.text = quote?.let { "《${it.title}》" }.orEmpty()
+        val author = quote?.author.orEmpty()
+        val displayAuthor = QuoteStore.showAuthor(this) && author.isNotBlank()
+        previewAuthor.visibility = if (displayAuthor) View.VISIBLE else View.GONE
+        previewAuthor.text = if (displayAuthor) " · $author" else ""
         statusView.text = if (QuoteStore.apiKey(this) == null) {
             "尚未连接 · 输入密钥开始同步"
         } else {
