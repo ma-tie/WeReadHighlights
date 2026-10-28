@@ -14,6 +14,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -244,14 +245,15 @@ class MainActivity : Activity() {
             topMargin = 19.dp
             bottomMargin = 19.dp
         })
-        frame.addView(TextView(this).apply {
-            text = "“"
-            textSize = 78f
-            setTextColor(Color.rgb(214, 236, 249))
-            includeFontPadding = false
-        }, FrameLayout.LayoutParams(-2, -2).apply {
-            leftMargin = 52.dp
-            topMargin = 23.dp
+        // Same vector and near-accent placement as the home-screen medium
+        // widget: unlike a font glyph this has no hidden font/baseline padding.
+        frame.addView(ImageView(this).apply {
+            setImageResource(R.drawable.widget_quote_mark)
+            scaleType = ImageView.ScaleType.FIT_XY
+            contentDescription = null
+        }, FrameLayout.LayoutParams(37.dp, 30.dp).apply {
+            leftMargin = 29.dp
+            topMargin = 15.dp
         })
         val inner = vertical().apply {
             setPadding(40.dp, 28.dp, 21.dp, 19.dp)
