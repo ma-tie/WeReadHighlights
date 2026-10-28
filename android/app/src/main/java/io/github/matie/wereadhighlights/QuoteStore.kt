@@ -54,10 +54,20 @@ object QuoteStore {
         cipher.init(Cipher.ENCRYPT_MODE, secretKey())
         val encrypted = cipher.doFinal(key.toByteArray(Charsets.UTF_8))
         val payload = cipher.iv + encrypted
-        prefs(context).edit()
+        val changedAccount = apiKey(context) != key
+        val editor = prefs(context).edit()
             .putString("api_key", Base64.encodeToString(payload, Base64.NO_WRAP))
-            .remove("user_vid")
-            .apply()
+        if (changedAccount) {
+            editor.remove("user_vid")
+                .remove("quote")
+                .remove("title")
+                .remove("author")
+                .remove("url")
+                .remove("slot")
+                .remove("skill_version")
+                .remove("last_error")
+        }
+        editor.apply()
     }
 
     fun apiKey(context: Context): String? {
