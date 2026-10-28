@@ -14,6 +14,8 @@ version still needs a new emulator check.
   a nonempty personal bookmark.
 - Cache the current quote and preserve it when offline or when the API fails.
 - iOS-inspired home-screen cards in three separate Android widget picker entries:
+  Android 12+ uses explicit default launcher sizes (Small **2×2**, Medium
+  **4×2**, Large **4×4**); final cell allocation depends on launcher grid.
   **Small** (4 quote lines, book title), **Medium** (4 lines, title and author),
   and **Large** (9 lines, title and author). Launcher grid size varies by device.
 - Native settings screen with quote preview, configurable refresh intervals
@@ -64,6 +66,11 @@ Once the branch's **push-triggered GitHub Actions** job succeeds, open **GitHub 
   blank-image rendering failures.
 - Updates are **best-effort**: WorkManager requests approximately one update
   at the selected interval (1–24 hours) and may be delayed by vendor background restrictions.
+- If an earlier 0.2.0 widget displays **Can't load widget**, update to 0.2.1:
+  the decoration previously used a plain `<View>` which is unsupported by
+  Android `RemoteViews`. Version 0.2.1 uses supported `ImageView` children
+  and adds an automated layout validation check. After updating, remove and
+  re-add affected home-screen widgets if the launcher retains the old failure.
 - The first launch requires network access. On subsequent failures the last
   cached quote stays visible.
 - No analytics, advertising, external backend, or API Key logging.
