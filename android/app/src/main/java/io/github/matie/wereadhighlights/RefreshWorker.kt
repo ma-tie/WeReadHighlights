@@ -10,7 +10,6 @@ import androidx.work.PeriodicWorkRequest
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import androidx.work.WorkManager
-import androidx.work.workDataOf
 import java.util.concurrent.TimeUnit
 
 class RefreshWorker(context: Context, params: WorkerParameters) : Worker(context, params) {
@@ -49,7 +48,7 @@ class RefreshWorker(context: Context, params: WorkerParameters) : Worker(context
         fun refreshNow(context: Context, force: Boolean = false) {
             val oneTime = OneTimeWorkRequest.Builder(RefreshWorker::class.java)
                 .setConstraints(constraints())
-                .setInputData(workDataOf("force" to force))
+                .setInputData(androidx.work.Data.Builder().putBoolean("force", force).build())
                 .build()
             WorkManager.getInstance(context).enqueueUniqueWork(
                 ONCE, ExistingWorkPolicy.REPLACE, oneTime
