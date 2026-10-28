@@ -13,6 +13,10 @@ version still needs a new emulator check.
 - Fetch personal notebooks, sample books weighted by `noteCount`, and sample
   a nonempty personal bookmark.
 - Cache the current quote and preserve it when offline or when the API fails.
+- Refined 0.2.2 styling: the translucent opening quote is smaller, lighter,
+  and shifted away from the blue accent. Book title and author now use separate
+  TextViews so long titles ellipsize before the author disappears. Small
+  intentionally shows the title only; Medium/Large honor the author toggle.
 - iOS-inspired home-screen cards in three separate Android widget picker entries:
   Android 12+ uses explicit default launcher sizes (Small **2×2**, Medium
   **4×2**, Large **4×4**); final cell allocation depends on launcher grid.
