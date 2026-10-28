@@ -4,13 +4,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/widget_background">
-    <View
+    <ImageView
         android:layout_width="3dp"
         android:layout_height="match_parent"
         android:layout_marginStart="15dp"
         android:layout_marginTop="13dp"
         android:layout_marginBottom="13dp"
-        android:background="@drawable/widget_accent" />
+        android:background="@drawable/widget_accent"
+        android:contentDescription="@null" />
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -41,12 +42,13 @@
             android:textSize="19sp"
             android:lineSpacingExtra="4dp"
             android:text="正在遇见下一句…" />
-        <View
+        <ImageView
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="9dp"
-            android:background="#D5EAF6" />
+            android:background="#D5EAF6"
+            android:contentDescription="@null" />
         <TextView
             android:id="@+id/source_text"
             android:layout_width="match_parent"
