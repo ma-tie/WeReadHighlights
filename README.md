@@ -13,7 +13,7 @@
 
 </div>
 
-> **Android 实验版**：已在 [feature/android-app](https://github.com/ma-tie/WeReadHighlights/tree/feature/android-app) 分支的 [android/](android/) 目录开发独立 APK。当前还需确认 CI 编译以及安卓微信读书跳转兼容性。iOS Scriptable 版本不受影响。
+> **Android 实验版**：已在 [feature/android-app](https://github.com/ma-tie/WeReadHighlights/tree/feature/android-app) 分支的 [android/](android/) 目录开发独立 APK。Android Debug APK 已通过 GitHub Actions 编译与单元测试（[成功的构建记录](https://github.com/ma-tie/WeReadHighlights/actions/runs/40635760024)）；安卓真机和微信读书精确跳转仍待验证。iOS Scriptable 版本不受影响。
 
 ---
 
