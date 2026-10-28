@@ -11,8 +11,7 @@
 [![Latest Release](https://img.shields.io/github/v/release/ma-tie/WeReadHighlights?label=Release)](https://github.com/ma-tie/WeReadHighlights/releases/latest)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-**[下载最新版本](https://github.com/ma-tie/WeReadHighlights/releases/latest)** · [iOS 安装指南](#ios-安装) · [Android 安装指南](#android-安装) · [版本管理](#版本与发布)
-
+**[下载最新版本](https://github.com/ma-tie/WeReadHighlights/releases/latest)** · [iOS 安装指南](#ios-安装) · [Android 安装指南](#android-安装) 
 </div>
 
 ---
