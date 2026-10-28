@@ -24,9 +24,8 @@ class RefreshWorker(context: Context, params: WorkerParameters) : Worker(context
             Result.success()
         } catch (e: Exception) {
             QuoteStore.saveError(applicationContext, e.message ?: "刷新失败")
-            // Keep showing the previous quote on network/API failures.
             QuoteWidgetProvider.renderAll(applicationContext)
-            Result.retry()
+            Result.retry() // Keep the previous cached quote displayed.
         }
     }
 
@@ -37,11 +36,13 @@ class RefreshWorker(context: Context, params: WorkerParameters) : Worker(context
             Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
 
         fun schedule(context: Context) {
+            val interval = QuoteStore.refreshHours(context).toLong()
             val periodic = PeriodicWorkRequest.Builder(
-                RefreshWorker::class.java, 4, TimeUnit.HOURS
+                RefreshWorker::class.java, interval, TimeUnit.HOURS
             ).setConstraints(constraints()).build()
+            // UPDATE changes the schedule without retaining an obsolete 4h interval.
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-                PERIODIC, ExistingPeriodicWorkPolicy.KEEP, periodic
+                PERIODIC, ExistingPeriodicWorkPolicy.UPDATE, periodic
             )
         }
 
