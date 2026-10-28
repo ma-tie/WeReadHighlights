@@ -14,9 +14,9 @@ on:
       - '.github/workflows/android-release.yml'
   workflow_dispatch:
 
-# Build signed test artifacts on the development branch. Publish a public
-# GitHub Release only on a deliberately tagged push, or the one-time
-# main-branch merge commit explicitly marked [publish].
+# One GitHub Release represents a repository snapshot. iOS/Android track
+# independent versions: VERSION is the release number, not app versionName.
+# Publish on a deliberately tagged push or a main merge marked [publish].
 concurrency:
   group: weread-release-${{ github.ref }}
   cancel-in-progress: true
@@ -48,7 +48,7 @@ jobs:
           test -n "$SDKMANAGER" && test -x "$SDKMANAGER"
           yes | "$SDKMANAGER" --licenses >/dev/null || true
           "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
-      - name: Validate unified version and Android widget resources
+      - name: Validate release snapshot and independent platform versions
         shell: bash
         run: |
           set -euo pipefail
@@ -61,14 +61,15 @@ jobs:
           ios = Path("WeReadHighlights.js").read_text(encoding="utf-8")
           android_version = gradle.split('versionName = "', 1)[1].split('"', 1)[0]
           ios_version = ios.split('const APP_VERSION = "', 1)[1].split('"', 1)[0]
-          assert version and version == android_version == ios_version, (
-              f"Versions differ: VERSION={version}, Android={android_version}, iOS={ios_version}"
-          )
+          import re
+          for kind, value in (("Release", version), ("Android", android_version), ("iOS", ios_version)):
+              assert re.fullmatch(r"\\d+\\.\\d+\\.\\d+", value), f"Invalid {kind} version: {value}"
+          print(f"Release snapshot v{version}: iOS v{ios_version} / Android v{android_version}")
           if os.environ.get("GITHUB_REF", "").startswith("refs/tags/"):
               assert os.environ["GITHUB_REF_NAME"] == "v" + version, (
                   "The tag must equal v followed by the shared VERSION"
               )
-          print("Verified iOS and Android unified version v" + version)
+          print("Validated release snapshot and independent app versions")
           PY
       - name: Build signed release APK
         shell: bash
@@ -93,9 +94,10 @@ jobs:
           export ANDROID_SIGNING_STORE_FILE="$SIGNING_FILE"
           gradle -p android :app:testDebugUnitTest :app:assembleRelease --no-daemon --stacktrace
 
-          VERSION="$(cat VERSION)"
+          ANDROID_VERSION="$(sed -n 's/.*versionName = "\\([^"]*\\)".*/\\1/p' android/app/build.gradle.kts | head -n 1)"
+          test -n "$ANDROID_VERSION"
           mkdir -p dist
-          cp android/app/build/outputs/apk/release/app-release.apk "dist/WeReadHighlights-v${VERSION}-release.apk"
+          cp android/app/build/outputs/apk/release/app-release.apk "dist/WeReadHighlights-Android-v${ANDROID_VERSION}.apk"
           cp WeReadHighlights.js dist/WeReadHighlights.js
       - name: Verify release signature and create checksums
         shell: bash
@@ -134,8 +136,10 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          VERSION="$(cat VERSION)"
-          TAG="v$VERSION"
+          RELEASE_VERSION="$(cat VERSION)"
+          ANDROID_VERSION="$(sed -n 's/.*versionName = "\\([^"]*\\)".*/\\1/p' android/app/build.gradle.kts | head -n 1)"
+          IOS_VERSION="$(sed -n 's/^const APP_VERSION = "\\([^"]*\\)".*/\\1/p' WeReadHighlights.js | head -n 1)"
+          TAG="v$RELEASE_VERSION"
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "::error::Release $TAG already exists; increment the shared version for future releases."
             exit 1
@@ -151,21 +155,27 @@ jobs:
           cat > release-notes.md <<'EOF'
           ## WeReadHighlights · iOS + Android
 
-          This is one shared version for both platforms.
+          One repository release containing the latest stable builds of both platforms.
 
-          - **iOS**: download `WeReadHighlights.js`, import it into [Scriptable](https://apps.apple.com/app/scriptable/id1405459188), and configure the home-screen widget.
-          - **Android**: download `WeReadHighlights-vVERSION-release.apk`, install it on Android 8.0+ and add a WeReadHighlights home-screen widget (Small / Medium / Large).
-          - **SHA256SUMS.txt** provides checksums for both downloads.
+          | Platform | App version | Download |
+          | --- | --- | --- |
+          | iOS / Scriptable | IOSVERSION | `WeReadHighlights.js` |
+          | Android / APK | ANDROIDVERSION | `WeReadHighlights-Android-vANDROIDVERSION.apk` |
 
-          Android includes encrypted API Key storage, configurable refresh intervals and text sizes, and native quote widgets. iOS keeps its Scriptable implementation. Both use the WeRead Skill API.
+          - **iOS**: import the script into [Scriptable](https://apps.apple.com/app/scriptable/id1405459188) and configure the home-screen widget.
+          - **Android**: install the signed APK on Android 8.0+ and add the Small, Medium, or Large widget.
+          - **SHA256SUMS.txt** contains checksums for both download files.
 
-          **Note:** Android exact-position deep linking into WeRead depends on the installed app and available quote metadata; results may vary by device.
+          A platform's version only changes when that platform changes. The
+          GitHub Release number describes this two-platform distribution snapshot.
+
+          Android exact-position deep linking depends on the installed WeRead app and the available quote metadata.
           EOF
-          sed -i "s/vVERSION/v$VERSION/g" release-notes.md
+          sed -i "s/IOSVERSION/$IOS_VERSION/g; s/ANDROIDVERSION/$ANDROID_VERSION/g" release-notes.md
           gh release create "$TAG" \
             dist/WeReadHighlights.js \
-            dist/WeReadHighlights-v"${VERSION}"-release.apk \
+            dist/WeReadHighlights-Android-v"${ANDROID_VERSION}".apk \
             dist/SHA256SUMS.txt \
-            --title "WeReadHighlights v$VERSION · iOS + Android" \
+            --title "WeReadHighlights v$RELEASE_VERSION · iOS + Android" \
             --notes-file release-notes.md \
             "${TAG_OPTS[@]}"
