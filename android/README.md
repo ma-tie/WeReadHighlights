@@ -48,18 +48,26 @@ gradle -p android :app:assembleDebug
 
 APK: `android/app/build/outputs/apk/debug/app-debug.apk`.
 
-Two workflows are available on `feature/android-app`:
+The GitHub Actions workflows serve two purposes:
 
-- **Android debug APK** builds a debug-signed test APK.
-- **Android signed release APK** uses repository GitHub Actions Secrets to build
-  and verify a consistently signed Release APK. On branch pushes it **only
-  uploads an Actions artifact**; it does not create a public GitHub Release.
-  GitHub Releases are published only after an explicit matching
-  `android-v<versionName>` tag is pushed, and the signed build succeeds.
+- **Android debug APK** builds a debug-signed test APK for development.
+- **WeReadHighlights signed multiplatform release** builds and signature-verifies
+  an Android Release APK and copies the iOS Scriptable script into the same
+  artifact. A public GitHub Release is published only on a deliberate
+  `v<release version>` tag, or on a main-branch merge commit marked
+  `[publish]`; ordinary development commits only produce CI artifacts.
 
-Download the `WeReadHighlights-Android-signed-release` artifact from the
-successful **Android signed release APK** workflow. It contains a file named
-`WeReadHighlights-v0.2.3-release.apk` for the current version.
+**Three independent versions**:
+
+| Version | Source file | When to increment |
+|---|---|---|
+| Release snapshot | Root `VERSION` | Whenever either platform is published |
+| iOS Scriptable | `WeReadHighlights.js` / `APP_VERSION` | When iOS changes |
+| Android | `android/app/build.gradle.kts` / `versionName` | When Android changes (also increase `versionCode`) |
+
+For example, Release `v0.2.4` may contain iOS `0.2.4` and Android
+`0.2.3` if only iOS changed. The same Release downloads both platforms.
+Android APK filenames use their **Android app version**, not snapshot version.
 
 ### Release signing setup
 
@@ -88,23 +96,26 @@ No keystore or plaintext credentials should ever be committed. Protect access
 to the repository and CI workflows because anyone able to modify a signing
 workflow on a trusted branch may be able to abuse repository secrets.
 
-### Publish a GitHub Release
+### Publishing the combined GitHub Release
 
-After verifying the intended version and inspecting its signed CI artifact,
-push a matching tag **from the commit containing the release workflow**:
+After validating the source and signed test artifact, increase the root
+`VERSION` for a new release snapshot. Increment the iOS `APP_VERSION`
+only if iOS changes, and Android `versionName` and `versionCode` only
+if Android changes. Both platform files are attached, even when just one
+was updated.
 
-```sh
-git checkout feature/android-app
-git pull
-git tag android-v0.2.3
-git push origin android-v0.2.3
-```
+Choose one of two supported publication methods:
 
-That tag triggers a **new signed build**, verifies the tag matches
-`versionName`, then publishes the APK to GitHub Releases. Do not reuse an
-existing tag for another APK; increment `versionCode` and `versionName`
-for future versions. Tag publication should be deliberate, not a side effect
-of routine development pushes.
+1. Merge into `main` with the `[publish]` marker in the merge commit
+   message. CI builds a newly signed APK, validates it and creates the
+   matching `v<VERSION>` tag and public Release.
+2. From a commit already containing the release workflow, deliberately
+   push a `v<VERSION>` tag. CI verifies the tag against `VERSION`, then
+   builds and publishes both artifacts.
+
+**Do not repeat the same tag** for new app code: increase `VERSION` first.
+Published versions are immutable snapshots. Future Android updates must
+also increase `versionCode` to support in-place upgrades.
 
 **Important:** Debug APKs use a different signing identity. Moving from a
 debug build to the first release APK usually requires uninstalling the debug
