@@ -7,9 +7,11 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.TypedValue
 import android.widget.RemoteViews
 
-class QuoteWidgetProvider : AppWidgetProvider() {
+/** Medium keeps the original receiver name, so previously installed widgets survive upgrades. */
+open class QuoteWidgetProvider : AppWidgetProvider() {
     override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) {
         super.onUpdate(context, manager, ids)
         renderAll(context)
@@ -32,49 +34,66 @@ class QuoteWidgetProvider : AppWidgetProvider() {
     companion object {
         const val ACTION_REFRESH = "io.github.matie.wereadhighlights.REFRESH"
 
+        private data class Style(
+            val provider: Class<out AppWidgetProvider>,
+            val layout: Int,
+            val bodySp: Float,
+            val sourceSp: Float,
+            val showAuthor: Boolean
+        )
+
+        private val styles = listOf(
+            Style(QuoteWidgetSmallProvider::class.java, R.layout.widget_quote_small, 16f, 12f, false),
+            Style(QuoteWidgetProvider::class.java, R.layout.widget_quote, 19f, 13f, true),
+            Style(QuoteWidgetLargeProvider::class.java, R.layout.widget_quote_large, 23f, 16f, true)
+        )
+
         fun renderAll(context: Context) {
             val manager = AppWidgetManager.getInstance(context)
-            val ids = manager.getAppWidgetIds(
-                ComponentName(context, QuoteWidgetProvider::class.java)
-            )
             val quote = QuoteStore.cached(context)
-            for (id in ids) {
-                val views = RemoteViews(context.packageName, R.layout.widget_quote)
-                val display = quote?.text ?: if (QuoteStore.apiKey(context) == null) {
-                    "打开 WeReadHighlights 设置微信读书 API Key"
-                } else {
-                    QuoteStore.lastError(context) ?: "正在获取微信读书划线…"
-                }
-                views.setTextViewText(R.id.quote_text, display)
-                val source = quote?.let {
-                    "《${it.title}》" + it.author.takeIf { author -> author.isNotBlank() }
-                        ?.let { author -> " · $author" }.orEmpty()
-                }.orEmpty()
-                views.setTextViewText(R.id.source_text, source)
+            val text = quote?.text ?: if (QuoteStore.apiKey(context) == null) {
+                "打开 WeReadHighlights 设置微信读书 API Key"
+            } else {
+                QuoteStore.lastError(context) ?: "正在获取微信读书划线…"
+            }
+            val scale = QuoteStore.fontScale(context)
+            val allowAuthor = QuoteStore.showAuthor(context)
 
-                val openIntent = Intent(context, OpenQuoteActivity::class.java)
-                    .putExtra(OpenQuoteActivity.EXTRA_URL, quote?.url.orEmpty())
-                    .putExtra(OpenQuoteActivity.EXTRA_HAS_QUOTE, quote != null)
-                val open = PendingIntent.getActivity(
-                    context, id, openIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                )
-                views.setOnClickPendingIntent(R.id.widget_root, open)
+            for (style in styles) {
+                val ids = manager.getAppWidgetIds(ComponentName(context, style.provider))
+                for (id in ids) {
+                    val views = RemoteViews(context.packageName, style.layout)
+                    views.setTextViewText(R.id.quote_text, text)
+                    val source = quote?.let {
+                        "《${it.title}》" +
+                            if (style.showAuthor && allowAuthor && it.author.isNotBlank()) {
+                                " · ${it.author}"
+                            } else ""
+                    }.orEmpty()
+                    views.setTextViewText(R.id.source_text, source)
+                    views.setTextViewTextSize(
+                        R.id.quote_text, TypedValue.COMPLEX_UNIT_SP, style.bodySp * scale
+                    )
+                    views.setTextViewTextSize(
+                        R.id.source_text, TypedValue.COMPLEX_UNIT_SP, style.sourceSp
+                    )
 
-                // Keep fonts readable when host allocates a small widget.
-                val options = manager.getAppWidgetOptions(id)
-                val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 180)
-                val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 100)
-                val size = when {
-                    minWidth < 180 || minHeight < 110 -> 14f
-                    minHeight > 240 -> 21f
-                    else -> 18f
+                    val openIntent = Intent(context, OpenQuoteActivity::class.java)
+                        .putExtra(OpenQuoteActivity.EXTRA_URL, quote?.url.orEmpty())
+                        .putExtra(OpenQuoteActivity.EXTRA_HAS_QUOTE, quote != null)
+                    views.setOnClickPendingIntent(
+                        R.id.widget_root,
+                        PendingIntent.getActivity(
+                            context, id, openIntent,
+                            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                        )
+                    )
+                    manager.updateAppWidget(id, views)
                 }
-                views.setTextViewTextSize(
-                    R.id.quote_text, android.util.TypedValue.COMPLEX_UNIT_SP, size
-                )
-                manager.updateAppWidget(id, views)
             }
         }
     }
 }
+
+class QuoteWidgetSmallProvider : QuoteWidgetProvider()
+class QuoteWidgetLargeProvider : QuoteWidgetProvider()
