@@ -58,7 +58,7 @@ android {
 val verifyReleaseSigning = tasks.register("verifyReleaseSigning") {
     group = "verification"
     doLast {
-        check(signingReady && java.io.File(signingFilePath!!).isFile) {
+        check(signingReady && file(signingFilePath!!).isFile) {
             "Release signing is not configured. Supply ANDROID_SIGNING_STORE_FILE, " +
                 "ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, and ANDROID_KEY_PASSWORD."
         }
