@@ -52,7 +52,6 @@ WeReadHighlights 是一个开源的**微信读书个人划线桌面小组件**�
 | --- | --- | --- |
 | **iOS** | `WeReadHighlights.js` | 在 Scriptable 中导入并添加小组件 |
 | **Android** | `WeReadHighlights-Android-v<Android版本>.apk` | 安装独立 App 后添加小组件 |
-| 校验 | `SHA256SUMS.txt` | 核对两个下载文件的 SHA-256 |
 
 ### 通用准备：微信读书 API Key
 
