@@ -96,7 +96,7 @@ const REFRESH_INTERVAL_HOURS = 4;
 
 **要求：** Android 8.0（API 26）或更高版本、微信读书，以及允许安装下载的 APK。
 
-1. 在 [Releases](https://github.com/ma-tie/WeReadHighlights/releases/latest) 下载名称包含 `Android` 的 **Release APK**（不是 Debug APK）。
+1. 在 [Releases](https://github.com/ma-tie/WeReadHighlights/releases/latest) 下载名称包含 `Android` 的 **Release APK**。
 2. 在手机中打开 APK，按系统提示允许该浏览器或文件管理器**安装未知应用**，完成安装。
 3. 打开 **WeReadHighlights**，输入 `wrk-` 开头的 API Key，点击 **保存密钥并同步**。
 4. 在 App 中根据需要设置**刷新周期**（1 / 2 / 3 / 4 / 6 / 8 / 12 / 24 小时）、**正文字号**（紧凑 / 标准 / 舒展）、**是否显示作者**。
