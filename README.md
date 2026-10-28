@@ -107,8 +107,6 @@ Android 12 及以上版本中，三种组件的期望网格尺寸分别为 **2×
 
 **注意：** Android 后台刷新由 WorkManager 请求，省电策略可能延后执行。Android 版会尝试打开对应微信读书链接，但不同安卓设备与微信读书版本对精确定位的支持尚不能保证。
 
-已有 Debug 版用户首次切换到正式签名 APK 时，可能需要先卸载 Debug 版（这会清除已存储的 API Key、缓存和设置）。**后续同签名的正式版可正常覆盖升级**，只需满足 Android 的版本号要求。
-
 Android 专项开发、构建和问题排查见 **[android/README.md](android/README.md)**。
 
 ---
