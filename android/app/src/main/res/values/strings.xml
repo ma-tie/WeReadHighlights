@@ -1,4 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">WeReadHighlights</string>
     <string name="widget_description">随机回顾微信读书划线</string>
+    <string name="widget_small_description">小号 · 精简划线，显示书名</string>
+    <string name="widget_medium_description">中号 · 划线、书名和作者</string>
+    <string name="widget_large_description">大号 · 展示更长的划线</string>
 </resources>
