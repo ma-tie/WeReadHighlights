@@ -15,6 +15,10 @@ on:
       - '.github/workflows/android-debug.yml'
   workflow_dispatch:
 
+concurrency:
+  group: android-debug-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
