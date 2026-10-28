@@ -1,7 +1,7 @@
 # WeReadHighlights for Android (experimental)
 
-This directory is an **independent Kotlin Android app**. The existing iOS
-`WeReadHighlights.js` remains unchanged. It is an early implementation and has
+This directory is an **independent Kotlin Android app**. The iOS Scriptable script at
+`../ios/WeReadHighlights.js` is maintained separately. It is an early implementation and has
 passed a previous emulator smoke test for basic quote rendering. The redesigned
 version still needs a new emulator check.
 
@@ -62,7 +62,7 @@ The GitHub Actions workflows serve two purposes:
 | Version | Source file | When to increment |
 |---|---|---|
 | Release snapshot | Root `VERSION` | Whenever either platform is published |
-| iOS Scriptable | `WeReadHighlights.js` / `APP_VERSION` | When iOS changes |
+| iOS Scriptable | `ios/WeReadHighlights.js` / `APP_VERSION` | When iOS changes |
 | Android | `android/app/build.gradle.kts` / `versionName` | When Android changes (also increase `versionCode`) |
 
 For example, Release `v0.2.4` may contain iOS `0.2.4` and Android

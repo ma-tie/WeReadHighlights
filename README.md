@@ -85,7 +85,7 @@ API Key 是个人访问凭据。**请勿将其写入公开仓库、发送给他�
   <p><sub>iOS 操作示例：创建脚本、编辑小组件、选择脚本</sub></p>
 </div>
 
-**调整刷新周期：** 在 `WeReadHighlights.js` 顶部修改：
+**调整刷新周期：** 在 [`ios/WeReadHighlights.js`](ios/WeReadHighlights.js) 顶部修改：
 
 ```javascript
 const REFRESH_INTERVAL_HOURS = 4;
@@ -142,7 +142,7 @@ iOS Scriptable / Android 原生 Widget 展示
 | 版本类型 | 位置 | 何时更新 |
 | --- | --- | --- |
 | 整体发布批次 | 根目录 `VERSION`，Git 标签 `vX.Y.Z` | 任一平台有新版本需要发布时 |
-| iOS 脚本版本 | `WeReadHighlights.js` 中的 `APP_VERSION` | iOS 脚本发生变化时 |
+| iOS 脚本版本 | [`ios/WeReadHighlights.js`](ios/WeReadHighlights.js) 中的 `APP_VERSION` | iOS 脚本发生变化时 |
 | Android 应用版本 | `android/app/build.gradle.kts` 中的 `versionName` / `versionCode` | Android 应用发生变化时，两个值都更新 |
 
 例如，GitHub Release **v0.2.4** 可以包含 **iOS 0.2.4 + Android 0.2.3**。即使某个平台没有更新，Release 仍会附带它的当前稳定文件，便于用户在同一页面下载。
@@ -199,8 +199,10 @@ iOS 和 Android 都不能保证桌面小组件精确准点更新。iOS 根据系
 
 ```text
 WeReadHighlights/
-├── WeReadHighlights.js           # iOS / Scriptable
-├── android/                      # Android / Kotlin 源码与构建说明
+├── ios/                          # iOS / Scriptable
+│   ├── WeReadHighlights.js
+│   └── README.md
+├── android/                      # Android / Kotlin
 │   └── README.md
 ├── .github/workflows/            # Debug APK 和双平台签名发布
 ├── VERSION                       # GitHub Release 发布批次
@@ -210,7 +212,7 @@ WeReadHighlights/
 └── LICENSE
 ```
 
-- **iOS 开发：** 修改仓库根目录 `WeReadHighlights.js`。
+- **iOS 开发：** 修改 [`ios/WeReadHighlights.js`](ios/WeReadHighlights.js)，参见 [iOS 使用与维护说明](ios/README.md)。
 - **Android 开发：** 阅读 [Android 开发说明](android/README.md)，使用 Android Studio 或 Gradle 构建。
 - **iOS 源码 PDF 导出（维护者工具）：** 安装 `tools/requirements.txt`，运行 `python3 tools/export_source_pdf.py` 生成 `WeReadHighlights.pdf`。生成的 PDF 不随每次发布自动附带。
 - 欢迎通过 [Issues](https://github.com/ma-tie/WeReadHighlights/issues) 与 [Pull Requests](https://github.com/ma-tie/WeReadHighlights/pulls) 反馈问题或参与开发。

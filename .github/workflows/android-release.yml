@@ -9,7 +9,7 @@ on:
       - 'v*'
     paths:
       - 'android/**'
-      - 'WeReadHighlights.js'
+      - 'ios/**'
       - 'VERSION'
       - '.github/workflows/android-release.yml'
   workflow_dispatch:
@@ -58,7 +58,7 @@ jobs:
           from pathlib import Path
           version = Path("VERSION").read_text(encoding="utf-8").strip()
           gradle = Path("android/app/build.gradle.kts").read_text(encoding="utf-8")
-          ios = Path("WeReadHighlights.js").read_text(encoding="utf-8")
+          ios = Path("ios/WeReadHighlights.js").read_text(encoding="utf-8")
           android_version = gradle.split('versionName = "', 1)[1].split('"', 1)[0]
           ios_version = ios.split('const APP_VERSION = "', 1)[1].split('"', 1)[0]
           import re
@@ -98,7 +98,7 @@ jobs:
           test -n "$ANDROID_VERSION"
           mkdir -p dist
           cp android/app/build/outputs/apk/release/app-release.apk "dist/WeReadHighlights-Android-v${ANDROID_VERSION}.apk"
-          cp WeReadHighlights.js dist/WeReadHighlights.js
+          cp ios/WeReadHighlights.js dist/WeReadHighlights.js
       - name: Verify release signature and create checksums
         shell: bash
         run: |
@@ -138,7 +138,7 @@ jobs:
           set -euo pipefail
           RELEASE_VERSION="$(cat VERSION)"
           ANDROID_VERSION="$(grep -m1 'versionName = ' android/app/build.gradle.kts | cut -d '"' -f2)"
-          IOS_VERSION="$(grep -m1 '^const APP_VERSION = ' WeReadHighlights.js | cut -d '"' -f2)"
+          IOS_VERSION="$(grep -m1 '^const APP_VERSION = ' ios/WeReadHighlights.js | cut -d '"' -f2)"
           TAG="v$RELEASE_VERSION"
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "::error::Release $TAG already exists; increment the shared version for future releases."

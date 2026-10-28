@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate the copy-friendly single-page source PDF used by WeReadHighlights.
 
-Default input:  <repo>/WeReadHighlights.js
+Default input:  <repo>/ios/WeReadHighlights.js
 Default output: <repo>/WeReadHighlights.pdf
 
 The layout intentionally uses one very tall PDF page so the complete source can
@@ -96,8 +96,8 @@ def main() -> None:
         "source",
         nargs="?",
         type=Path,
-        default=repo_root / "WeReadHighlights.js",
-        help="source file (default: WeReadHighlights.js in repository root)",
+        default=repo_root / "ios" / "WeReadHighlights.js",
+        help="source file (default: ios/WeReadHighlights.js in repository)",
     )
     parser.add_argument(
         "-o",
