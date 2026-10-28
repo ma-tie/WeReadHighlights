@@ -33,9 +33,12 @@ jobs:
       - name: Install Android SDK components
         run: |
           echo "ANDROID_HOME=$ANDROID_HOME"
-          yes | sdkmanager --licenses >/dev/null || true
-          sdkmanager --install "platforms;android-35" "build-tools;35.0.0"
-          sdkmanager --list_installed | grep -E '(platforms;android-35|build-tools;35.0.0)'
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -maxdepth 3 -type f -name sdkmanager | sort -V | tail -n 1)"
+          test -n "$SDKMANAGER" && test -x "$SDKMANAGER"
+          echo "Using: $SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+          "$SDKMANAGER" --list_installed | grep -E '(platforms;android-35|build-tools;35.0.0)'
       - name: Unit tests and debug APK
         run: gradle -p android :app:testDebugUnitTest :app:assembleDebug --stacktrace
       - uses: actions/upload-artifact@v4
