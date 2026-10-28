@@ -38,10 +38,9 @@ WeReadHighlights 是一个开源的**微信读书个人划线桌面小组件**�
 以下为**iOS / Scriptable** 的实际截图；Android 沿用类似的视觉风格，但使用原生小组件，实际尺寸和排版取决于手机的桌面启动器。
 
 <div align="center">
-  <img src="docs/images/widget-preview.webp" width="340" alt="iOS Scriptable 中号微信读书划线小组件">
-  <p><sub>iOS 中号小组件</sub></p>
-  <img src="docs/images/deeplink-demo.gif" width="210" alt="iOS 点击小组件跳回微信读书原文的演示">
-  <p><sub>iOS 点击跳转演示（不代表 Android 精确跳转已获验证）</sub></p>
+  <img src="docs/images/widget-preview.webp" width="220" alt="iOS Scriptable 中号微信读书划线小组件">
+  <img src="docs/images/deeplink-demo.gif" width="220" alt="iOS 点击小组件跳回微信读书原文的演示">
+  <p><sub>左：iOS 中号小组件 · 右：iOS 点击跳转演示（Android 精确跳转效果可能不同）</sub></p>
 </div>
 
 ---
