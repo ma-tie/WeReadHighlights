@@ -10,7 +10,7 @@
 
 // iOS Scriptable version, independent of Android and repository Release tags.
 // This is separate from the WeRead Skill API's own SKILL_VERSION.
-const APP_VERSION = "0.2.4";
+const APP_VERSION = "0.2.5";
 
 const API_URL = "https://i.weread.qq.com/api/agent/gateway";
 const SKILL_VERSION = "1.0.5";
@@ -790,6 +790,29 @@ async function renderQuoteCard(
     config.cardChineseFont ||
     '"Kaiti SC", "STKaiti", "KaiTi", serif';
 
+  // Optional desktop appearance; other platforms retain their existing colors.
+  const themeDefaults = {
+    backgroundStart: "#F9FDFF", backgroundEnd: "#E7F5FF",
+    accentStart: "#31A7F4", accentEnd: "#79CDFF", text: "#263A48",
+    title: "#257EAF", author: "#263A48", divider: "#2499E5", quoteMark: "#31A7F4"
+  };
+  const theme = { ...themeDefaults };
+  for (const key of Object.keys(theme)) {
+    const value = config.cardOptions?.theme?.[key];
+    if (/^#[0-9a-f]{6}$/i.test(value || "")) theme[key] = value;
+  }
+  const backgroundImage = config.cardOptions?.theme?.backgroundImage;
+  theme.backgroundImage = /^data:image\/(png|jpeg|webp);base64,[a-z0-9+/=]+$/i.test(backgroundImage || "") ? backgroundImage : null;
+  const overlay = config.cardOptions?.theme?.overlay;
+  theme.overlay = Number.isFinite(overlay) ? Math.max(0, Math.min(1, overlay)) : 0.25;
+
+  const crop = config.cardOptions?.theme?.crops?.[family];
+  theme.crop = crop && [crop.x, crop.y, crop.zoom].every(Number.isFinite) ? {
+    x: Math.max(0, Math.min(1, crop.x)),
+    y: Math.max(0, Math.min(1, crop.y)),
+    zoom: Math.max(1, Math.min(4, crop.zoom))
+  } : { x: 0.5, y: 0.5, zoom: 1 };
+
   const html = [
     "<!DOCTYPE html>",
     "<html>",
@@ -811,6 +834,8 @@ async function renderQuoteCard(
       H +
       'px"></canvas>',
     "<script>",
+    "window.cardReady = (async () => {",
+    "const theme = " + JSON.stringify(theme) + ";",
     'const canvas = document.getElementById("card");',
     'const ctx = canvas.getContext("2d");',
     'ctx.scale(' + RENDER_SCALE + ', ' + RENDER_SCALE + ');',
@@ -822,16 +847,25 @@ async function renderQuoteCard(
 
     "// 背景",
     "const bg = ctx.createLinearGradient(0, 0, " + W + ", " + H + ");",
-    'bg.addColorStop(0, "#F9FDFF");',
-    'bg.addColorStop(1, "#E7F5FF");',
+    "bg.addColorStop(0, theme.backgroundStart);",
+    "bg.addColorStop(1, theme.backgroundEnd);",
     "ctx.fillStyle = bg;",
     "ctx.fillRect(0, 0, " + W + ", " + H + ");",
+
+    "if (theme.backgroundImage) {",
+    "  const image = new Image(); image.src = theme.backgroundImage; await image.decode();",
+    "  const scale = theme.crop.zoom * Math.max(" + W + " / image.width, " + H + " / image.height);",
+    "  const dw = image.width * scale, dh = image.height * scale;",
+    "  ctx.drawImage(image, (" + W + " - dw) * theme.crop.x, (" + H + " - dh) * theme.crop.y, dw, dh);",
+    "  ctx.globalAlpha = theme.overlay; ctx.fillStyle = bg;",
+    "  ctx.fillRect(0, 0, " + W + ", " + H + "); ctx.globalAlpha = 1;",
+    "}",
 
     "// 左侧蓝色装饰线",
     "const accent = ctx.createLinearGradient(" +
       "0, layout.accentY, 0, layout.accentY + layout.accentHeight);",
-    'accent.addColorStop(0, "#31A7F4");',
-    'accent.addColorStop(1, "#79CDFF");',
+    'accent.addColorStop(0, theme.accentStart);',
+    'accent.addColorStop(1, theme.accentEnd);',
     "ctx.fillStyle = accent;",
     "ctx.beginPath();",
     "ctx.roundRect(" +
@@ -842,7 +876,7 @@ async function renderQuoteCard(
     "ctx.fill();",
 
     "// 背景大引号",
-    'ctx.fillStyle = "rgba(49,167,244,0.10)";',
+    'ctx.fillStyle = theme.quoteMark + "1a";',
     'ctx.font = layout.quoteMarkSize + "px Georgia, serif";',
     'ctx.fillText("“", layout.quoteMarkX, layout.quoteMarkY);',
 
@@ -851,7 +885,7 @@ async function renderQuoteCard(
       JSON.stringify(quote).replace(/</g, "\\u003c") +
       ";",
 
-    'ctx.fillStyle = "#263A48";',
+    'ctx.fillStyle = theme.text;',
 
     "ctx.font = layout.bodyFontSize + 'px ' + chineseFont;",
 
@@ -914,7 +948,7 @@ async function renderQuoteCard(
     "}",
 
     "// 分割线",
-    'ctx.fillStyle = "rgba(36,153,229,0.18)";',
+    'ctx.fillStyle = theme.divider + "2e";',
     "ctx.fillRect(" +
       "layout.dividerX, " +
       "layout.dividerY, " +
@@ -978,7 +1012,7 @@ async function renderQuoteCard(
     'ctx.textAlign = "right";',
 
     "if (authorPart) {",
-    '  ctx.fillStyle = "rgba(38,58,72,0.43)";',
+    '  ctx.fillStyle = theme.author + "6e";',
     '  ctx.font = ' +
       'layout.sourceAuthorFontSize + ' +
       '"px -apple-system, BlinkMacSystemFont, sans-serif";',
@@ -989,7 +1023,7 @@ async function renderQuoteCard(
     ");",
     "}",
 
-    'ctx.fillStyle = "#257EAF";',
+    'ctx.fillStyle = theme.title;',
 
     "ctx.font = layout.sourceTitleFontSize + 'px ' + chineseFont;",
 
@@ -1001,6 +1035,7 @@ async function renderQuoteCard(
 
     'ctx.textAlign = "left";',
 
+    "})();",
     "</script>",
     "</body>",
     "</html>"

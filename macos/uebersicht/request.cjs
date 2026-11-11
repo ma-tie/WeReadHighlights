@@ -1,5 +1,8 @@
 const { execFileSync, spawnSync } = require("node:child_process");
 const { createHash } = require("node:crypto");
+const fs = require("node:fs");
+const os = require("node:os");
+const path = require("node:path");
 const https = require("node:https");
 
 const service = "WeReadHighlights";
@@ -26,6 +29,33 @@ function configureKey() {
     throw new Error("无法保存到钥匙串");
   }
   process.stdout.write("saved");
+}
+
+function chooseBackground() {
+  const dialog = spawnSync("/usr/bin/osascript", [
+    "-e", "tell current application to activate",
+    "-e", 'POSIX path of (choose file with prompt "选择划线卡片的背景图片")'
+  ], { encoding: "utf8" });
+  if (dialog.status !== 0) {
+    if (dialog.stderr?.includes("(-128)")) return;
+    throw new Error("无法打开图片选择窗口");
+  }
+
+  const source = dialog.stdout.replace(/\r?\n$/, "");
+  if (!/\.(jpe?g|png|webp)$/i.test(source) || fs.statSync(source).size > 20 * 1024 * 1024) {
+    throw new Error("请选择 20 MB 以内的 JPG、PNG 或 WebP 图片");
+  }
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "weread-background-"));
+  try {
+    const output = path.join(directory, "background.jpg");
+    execFileSync("/usr/bin/sips", [
+      "-Z", "1200", "-s", "format", "jpeg", "-s", "formatOptions", "85",
+      source, "--out", output
+    ], { stdio: "pipe" });
+    process.stdout.write("data:image/jpeg;base64," + fs.readFileSync(output).toString("base64"));
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
 }
 
 function fetchWeRead(key, body) {
@@ -85,6 +115,10 @@ function readerLink({ bookId, chapterUid, range, title, fallback }) {
 }
 
 async function main() {
+  if (process.argv[2] === "choose-background") {
+    chooseBackground();
+    return;
+  }
   if (process.argv[2] === "setup") {
     configureKey();
     return;

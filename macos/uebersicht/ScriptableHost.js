@@ -28,6 +28,7 @@ class WebView {
 
   async evaluateJavaScript() {
     try {
+      await this.frame.contentWindow.cardReady;
       return this.frame.contentDocument.getElementById("card").toDataURL("image/png");
     } finally {
       this.frame.remove();
