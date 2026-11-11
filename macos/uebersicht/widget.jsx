@@ -10,11 +10,12 @@ const fonts = {
   system: '"PingFang SC", -apple-system, sans-serif'
 };
 const intervals = [1, 2, 3, 4, 6, 8, 12, 24];
-const fontScales = { compact: 0.87, standard: 1, roomy: 1.13 };
+const legacyFontPercent = { compact: 87, standard: 100, roomy: 113 };
+const fontPercentRange = { min: 50, max: 250, step: 0.5 };
 const preferencesKey = "WeReadHighlights.appearance";
 let appearance = {
-  family: "medium", font: "system", version: 2,
-  refreshHours: 4, textSize: "standard", showAuthor: true
+  family: "medium", width: 330, height: 156, font: "system", version: 2,
+  refreshHours: 4, fontPercent: 100, showAuthor: true
 };
 try {
   const saved = JSON.parse(localStorage.getItem(preferencesKey));
@@ -22,9 +23,13 @@ try {
     appearance = {
       ...appearance,
       family: saved.family,
+      width: Number.isFinite(saved.width) ? Math.max(156, Math.min(800, saved.width)) : sizes[saved.family][0],
+      height: Number.isFinite(saved.height) ? Math.max(120, Math.min(600, saved.height)) : sizes[saved.family][1],
       font: saved.version !== 2 && saved.font === "kaiti" ? "system" : saved.font,
       refreshHours: intervals.includes(saved.refreshHours) ? saved.refreshHours : appearance.refreshHours,
-      textSize: Object.hasOwn(fontScales, saved.textSize) ? saved.textSize : appearance.textSize,
+      fontPercent: Number.isFinite(saved.fontPercent)
+        ? Math.max(fontPercentRange.min, Math.min(fontPercentRange.max, Math.round(saved.fontPercent / fontPercentRange.step) * fontPercentRange.step))
+        : Object.hasOwn(legacyFontPercent, saved.textSize) ? legacyFontPercent[saved.textSize] : appearance.fontPercent,
       showAuthor: saved.showAuthor !== false
     };
   }
@@ -44,7 +49,6 @@ const themeLabels = {
 };
 const centerCrop = { x: 0.5, y: 0.5, zoom: 1 };
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
-let cropFamily;
 let cropDraft;
 let cropDrag;
 let theme = { ...defaultTheme };
@@ -94,9 +98,8 @@ async function selectBackground(dispatch) {
 }
 
 function renderCropEditor(dispatch) {
-  const family = cropFamily || appearance.family;
+  const { family, width, height } = appearance;
   const crop = cropDraft || theme.crops[family] || centerCrop;
-  const [width, height] = sizes[family];
   const update = change => {
     cropDraft = { ...(cropDraft || crop), ...change };
     dispatch({ cropChanged: true });
@@ -105,13 +108,6 @@ function renderCropEditor(dispatch) {
     <details>
       <summary>裁切背景</summary>
       <div style={{ display: "grid", gap: 8, paddingTop: 8 }}>
-        <label>预览尺寸 <select value={family} onChange={event => {
-          cropFamily = event.target.value;
-          cropDraft = undefined;
-          dispatch({ cropChanged: true });
-        }}>
-          <option value="small">小</option><option value="medium">中</option><option value="large">大</option>
-        </select></label>
         <div aria-label="拖动图片调整裁切" style={{
           position: "relative", width: "100%", aspectRatio: width + " / " + height,
           overflow: "hidden", borderRadius: 10, cursor: "grab", touchAction: "none", userSelect: "none"
@@ -146,7 +142,7 @@ function renderCropEditor(dispatch) {
           <div style={{ position: "absolute", inset: 0, pointerEvents: "none", opacity: theme.overlay,
             background: "linear-gradient(to bottom right, " + theme.backgroundStart + ", " + theme.backgroundEnd + ")" }} />
         </div>
-        <small>拖动图片调整位置。切换尺寸前，先保存当前裁切。</small>
+        <small>按当前卡片尺寸预览，拖动图片调整位置。</small>
         <label>缩放 {Math.round(crop.zoom * 100)}%
           <input type="range" min="1" max="4" step="0.05" value={crop.zoom}
             onInput={event => update({ zoom: Number(event.target.value) })} />
@@ -158,7 +154,7 @@ function renderCropEditor(dispatch) {
             cropDraft = undefined;
             dispatch({ cropChanged: true });
           }
-        }}>保存当前尺寸裁切</button>
+        }}>保存裁切</button>
       </div>
     </details>
   );
@@ -211,6 +207,40 @@ function finishDrag(event, dispatch) {
   drag = undefined;
 }
 
+let resizeDrag;
+
+function beginResize(event, width, height) {
+  if (event.button !== 0 || resizeDrag) return;
+  event.stopPropagation();
+  event.preventDefault();
+  const handle = event.currentTarget;
+  const card = handle.parentElement.getBoundingClientRect();
+  resizeDrag = {
+    id: event.pointerId, x: event.clientX, y: event.clientY, width, height,
+    maxWidth: clamp(Math.floor(window.innerWidth - card.left), 156, 800),
+    maxHeight: clamp(Math.floor(window.innerHeight - card.top), 120, 600)
+  };
+  handle.setPointerCapture(event.pointerId);
+}
+
+function moveResize(event, dispatch) {
+  if (resizeDrag?.id !== event.pointerId) return;
+  const { x, y, width, height, maxWidth, maxHeight } = resizeDrag;
+  resizeDrag.preview = {
+    width: clamp(Math.round(width + event.clientX - x), 156, maxWidth),
+    height: clamp(Math.round(height + event.clientY - y), 120, maxHeight)
+  };
+  dispatch({ positionChanged: true });
+}
+
+function finishResize(event, dispatch, commit = false) {
+  if (resizeDrag?.id !== event.pointerId) return;
+  const preview = resizeDrag.preview;
+  resizeDrag = undefined;
+  if (commit && preview) changeAppearance(preview, dispatch);
+  else dispatch({ positionChanged: true });
+}
+
 let account;
 let storage = {};
 let refreshing = false;
@@ -225,6 +255,35 @@ export const className = `
   left: 0;
   font: 13px -apple-system, sans-serif;
   color: #263a48;
+
+  .resize-handle {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 24px;
+    height: 24px;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    cursor: nwse-resize;
+    opacity: 0;
+    touch-action: none;
+  }
+  .resize-handle::after {
+    content: "";
+    position: absolute;
+    inset: auto 3px 3px auto;
+    width: 11px;
+    height: 11px;
+    border-right: 2px solid rgba(38, 58, 72, .55);
+    border-bottom: 2px solid rgba(38, 58, 72, .55);
+    border-bottom-right-radius: 9px;
+    filter: drop-shadow(0 0 1px rgba(255, 255, 255, .9));
+    pointer-events: none;
+  }
+  &:hover .resize-handle, .resize-handle:focus-visible, .resize-handle[data-resizing="true"] {
+    opacity: 1;
+  }
 
   .settings {
     position: absolute;
@@ -289,9 +348,9 @@ export const command = async dispatch => {
     forceRefreshRequested = false;
     const card = await renderCard(storage, !account, requested.family, fonts[requested.font], {
       refreshHours: requested.refreshHours,
-      fontScale: fontScales[requested.textSize],
+      fontScale: requested.fontPercent / 100,
       showAuthor: requested.showAuthor,
-      forceRefresh, theme
+      forceRefresh, theme, desktopSize: { width: requested.width, height: requested.height }
     });
     if (card.backgroundImage) {
       const image = "data:image/png;base64," + card.backgroundImage;
@@ -301,7 +360,7 @@ export const command = async dispatch => {
       }), "link") : null;
       if (requested !== appearance) return;
       nextRefresh = card.refreshAfterDate?.getTime() || 0;
-      dispatch({ image, link, demo: !account, family: requested.family });
+      dispatch({ image, link, demo: !account, width: requested.width, height: requested.height });
     } else {
       dispatch({ message: card.lines[1] || "无法加载微信读书划线" });
     }
@@ -326,6 +385,7 @@ function requestRefresh(dispatch, force = false) {
 function changeAppearance(change, dispatch) {
   appearance = { ...appearance, ...change };
   try { localStorage.setItem(preferencesKey, JSON.stringify(appearance)); } catch {}
+  dispatch({ positionChanged: true });
   requestRefresh(dispatch);
 }
 
@@ -337,15 +397,16 @@ export const updateState = (event, previous) => {
   return event;
 };
 
-export const render = ({ image, link, demo, message, family, themeMessage }, dispatch) => {
-  const [width, height] = sizes[family || appearance.family];
+export const render = ({ image, link, demo, message, themeMessage }, dispatch) => {
+  const { width, height } = resizeDrag?.preview || appearance;
+  const origin = clampPosition(position, appearance.width, appearance.height);
   const card = image && (
     <img src={image} alt="微信读书划线" width={width} height={height}
          draggable={false} style={{ display: "block", borderRadius: 14, userSelect: "none" }} />
   );
   return (
     <div style={{ width, position: "relative", touchAction: "none",
-                  transform: `translate(${clampPosition(position, width, height).x}px, ${clampPosition(position, width, height).y}px)` }}
+                  transform: `translate(${origin.x}px, ${origin.y}px)` }}
          onPointerDown={startDrag} onPointerMove={moveDrag}
          onPointerUp={event => finishDrag(event, dispatch)}
          onPointerCancel={event => finishDrag(event, dispatch)}
@@ -353,13 +414,36 @@ export const render = ({ image, link, demo, message, family, themeMessage }, dis
          onClickCapture={event => {
            if (suppressClick) { event.preventDefault(); event.stopPropagation(); suppressClick = false; }
          }}>
-      {link ? (
-        <button type="button" aria-label="在浏览器打开微信读书"
-                style={{ display: "block", padding: 0, border: 0, background: "transparent", cursor: "grab" }}
-                onClick={() => run("/usr/bin/open " + shellArg(link))}>
-          {card}
-        </button>
-      ) : card}
+      <div style={{ position: "relative" }}>
+        {link ? (
+          <button type="button" aria-label="在浏览器打开微信读书"
+                  style={{ display: "block", padding: 0, border: 0, background: "transparent", cursor: "grab" }}
+                  onClick={() => run("/usr/bin/open " + shellArg(link))}>
+            {card}
+          </button>
+        ) : card}
+        {image && (
+          <button type="button" className="resize-handle" aria-label="拖动调整卡片大小"
+            title="拖动调整卡片大小" data-resizing={resizeDrag ? "true" : undefined}
+            onPointerDown={event => beginResize(event, width, height)}
+            onPointerMove={event => moveResize(event, dispatch)}
+            onPointerUp={event => finishResize(event, dispatch, true)}
+            onPointerCancel={event => finishResize(event, dispatch)}
+            onLostPointerCapture={event => finishResize(event, dispatch)}
+            onKeyDown={event => {
+              const step = 10;
+              const directions = { ArrowLeft: [-step, 0], ArrowRight: [step, 0],
+                ArrowUp: [0, -step], ArrowDown: [0, step] };
+              const delta = directions[event.key];
+              if (!delta) return;
+              event.preventDefault();
+              changeAppearance({
+                width: clamp(width + delta[0], 156, 800),
+                height: clamp(height + delta[1], 120, 600)
+              }, dispatch);
+            }} />
+        )}
+      </div>
       {(demo || message) && (
         <div style={{ background: "#eaf7ff", padding: "5px 10px", borderRadius: 8, marginTop: 4 }}>
           {message || "示例划线"}
@@ -373,10 +457,6 @@ export const render = ({ image, link, demo, message, family, themeMessage }, dis
           top: Math.min(0, window.innerHeight - clampPosition(position, width, height).y - 280),
           maxHeight: Math.min(560, Math.max(260, window.innerHeight - clampPosition(position, width, height).y - 16))
         }}>
-          <label>尺寸 <select value={appearance.family}
-              onChange={event => changeAppearance({ family: event.target.value }, dispatch)}>
-            <option value="small">小</option><option value="medium">中</option><option value="large">大</option>
-          </select></label>
           <label>字体 <select value={appearance.font}
               onChange={event => changeAppearance({ font: event.target.value }, dispatch)}>
             <option value="system">系统字体</option><option value="songti">宋体</option><option value="kaiti">楷体优先</option>
@@ -385,12 +465,14 @@ export const render = ({ image, link, demo, message, family, themeMessage }, dis
               onChange={event => changeAppearance({ refreshHours: Number(event.target.value) }, dispatch)}>
             {intervals.map(hours => <option key={hours} value={hours}>{hours} 小时</option>)}
           </select></label>
-          <label>正文字号 <select value={appearance.textSize}
-              onChange={event => changeAppearance({ textSize: event.target.value }, dispatch)}>
-            <option value="compact">紧凑</option><option value="standard">标准</option><option value="roomy">舒展</option>
-          </select></label>
+          <label style={{ display: "grid", gap: 4 }}>
+            字号 {appearance.fontPercent}%
+            <input type="range" min={fontPercentRange.min} max={fontPercentRange.max} step={fontPercentRange.step}
+              aria-label="字号" aria-valuetext={appearance.fontPercent + "%"}
+              value={appearance.fontPercent}
+              onInput={event => changeAppearance({ fontPercent: Number(event.target.value) }, dispatch)} />
+          </label>
           <label><input type="checkbox" checked={appearance.showAuthor}
-              disabled={appearance.family === "small"}
               onChange={event => changeAppearance({ showAuthor: event.target.checked }, dispatch)} /> 显示作者</label>
           <details>
             <summary>颜色与背景</summary>

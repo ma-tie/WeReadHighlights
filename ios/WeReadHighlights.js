@@ -10,7 +10,7 @@
 
 // iOS Scriptable version, independent of Android and repository Release tags.
 // This is separate from the WeRead Skill API's own SKILL_VERSION.
-const APP_VERSION = "0.2.6";
+const APP_VERSION = "0.2.7";
 
 const API_URL = "https://i.weread.qq.com/api/agent/gateway";
 const SKILL_VERSION = "1.0.5";
@@ -751,9 +751,40 @@ async function renderQuoteCard(
 ) {
   const layout =
     getWidgetLayout(family);
+  const desktop = config.cardOptions?.desktopSize;
+  if (desktop) {
+    // Match the Mac display size at two canvas units per desktop pixel.
+    const width = desktop.width * 2;
+    const height = desktop.height * 2;
+    const right = width - 32;
+    const contentWidth = right - 42;
+    Object.assign(layout, {
+      width, height,
+      accentX: 20, accentY: 20, accentWidth: 5, accentHeight: height - 40,
+      quoteMarkX: 28, quoteMarkY: 88, quoteMarkSize: 96,
+      bodyX: 42, bodyAreaTop: 30, bodyAreaBottom: height - 76,
+      bodyFontSize: 32, bodyLineHeight: 44, bodyMaxWidth: contentWidth,
+      bodyMaxLines: Infinity,
+      dividerX: 42, dividerY: height - 61, dividerWidth: contentWidth,
+      sourceRightX: right, sourceY: height - 28,
+      sourceTitleFontSize: 21, sourceAuthorFontSize: 15,
+      sourceMaxWidth: contentWidth, sourceAuthorMaxWidth: contentWidth * 0.38,
+      showAuthor: true
+    });
+  }
   const fontScale = config.cardOptions?.fontScale ?? 1;
-  layout.bodyFontSize = Math.round(layout.bodyFontSize * fontScale);
-  layout.bodyLineHeight = Math.round(layout.bodyLineHeight * fontScale);
+  layout.bodyFontSize *= fontScale;
+  layout.bodyLineHeight *= fontScale;
+  if (desktop) {
+    layout.sourceTitleFontSize *= fontScale;
+    layout.sourceAuthorFontSize *= fontScale;
+    const extraFooterHeight = Math.max(0, layout.sourceTitleFontSize - 21);
+    layout.dividerY -= extraFooterHeight;
+    layout.bodyAreaBottom -= extraFooterHeight;
+  } else {
+    layout.bodyFontSize = Math.round(layout.bodyFontSize);
+    layout.bodyLineHeight = Math.round(layout.bodyLineHeight);
+  }
   layout.bodyMaxLines = Math.min(
     layout.bodyMaxLines,
     1 + Math.floor(
@@ -773,7 +804,7 @@ async function renderQuoteCard(
   // Small / Medium 使用 4×，Large 为降低内存压力使用 2×。
   // 逻辑尺寸和布局参数保持不变，只调整底层位图像素密度。
   const RENDER_SCALE =
-    family === "large"
+    (desktop || family === "large")
       ? 2
       : 4;
 
@@ -991,6 +1022,7 @@ async function renderQuoteCard(
       'layout.sourceAuthorFontSize + ' +
       '"px -apple-system, BlinkMacSystemFont, sans-serif";',
     "  authorWidth = ctx.measureText(authorPart).width;",
+    ...(desktop ? ["  authorWidth = Math.min(authorWidth, layout.sourceAuthorMaxWidth);"] : []),
     "}",
 
     "ctx.font = layout.sourceTitleFontSize + 'px ' + chineseFont;",
@@ -1031,7 +1063,7 @@ async function renderQuoteCard(
     "ctx.fillText(" +
       "source, " +
       "layout.sourceRightX - authorWidth, " +
-      "layout.sourceY" +
+      "layout.sourceY" + (desktop ? ", maxTitleWidth" : "") +
     ");",
 
     'ctx.textAlign = "left";',
