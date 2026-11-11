@@ -18,7 +18,7 @@
 
 ## 项目介绍
 
-WeReadHighlights 是一个开源的**微信读书个人划线桌面小组件**，支持 iOS、Android 和 macOS。Mac 版使用 Übersicht 独立运行，无须 iPhone。
+WeReadHighlights 是一个开源的**微信读书个人划线桌面小组件**，支持 iOS、Android 和 macOS。
 
 它会从你的微信读书划线中随机挑选一句，展示在主屏幕上。默认按 **4 小时**划分刷新时段，支持调整周期；点击小组件可尝试返回对应书籍或划线位置。
 
