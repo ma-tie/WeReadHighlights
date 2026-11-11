@@ -66,7 +66,7 @@ The GitHub Actions workflows serve two purposes:
 | Android | `android/app/build.gradle.kts` / `versionName` | When Android changes (also increase `versionCode`) |
 
 For example, Release `v0.2.4` may contain iOS `0.2.4` and Android
-`0.2.3` if only iOS changed. The same Release downloads both platforms.
+`0.2.3` if only iOS changed. The same Release also provides the macOS installer.
 Android APK filenames use their **Android app version**, not snapshot version.
 
 ### Release signing setup
