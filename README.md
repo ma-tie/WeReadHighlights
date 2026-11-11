@@ -91,12 +91,12 @@ const REFRESH_INTERVAL_HOURS = 4;
 
 ### Mac 安装
 
-**要求：** Mac 和 [Übersicht](https://tracesof.net/uebersicht/)，无须 iPhone 或 Xcode。
+**要求：** Mac 和 [Übersicht](https://tracesof.net/uebersicht/)。
 
 1. 下载 Übersicht，放入「应用程序」文件夹。
 2. 从 [Releases](https://github.com/ma-tie/WeReadHighlights/releases/latest) 下载 `WeReadHighlights-macOS-v<发布版本>.zip` 并解压。
 3. 双击解压目录里的 **`Install.command`**，自动安装组件并启动 Übersicht。
-4. 桌面卡片出现后，点右上角 **齿轮 → 配置 API Key**，输入自己的 `wrk-` 密钥；若系统询问钥匙串访问权限，允许读取。
+4. 桌面卡片出现后，鼠标移动到卡片右上角，会出现齿轮，点右上角 **齿轮 → 配置 API Key**，输入自己的 `wrk-` 微信读书API Key；若系统询问钥匙串访问权限，允许读取。
 
 齿轮里可以调整小 / 中 / 大尺寸、字体、字号、刷新周期和作者显示，也可以手动换一句。点击卡片会打开微信读书网页并尝试定位划线。使用时保持 Übersicht 运行。
 
