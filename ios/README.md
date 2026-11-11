@@ -32,7 +32,7 @@ API Key 和 `userVid` 保存在 Scriptable 可访问的 Keychain 中；
 
 - **源码：** `ios/WeReadHighlights.js`
 - **iOS 版本号：** 脚本中的 `APP_VERSION`，与 Android `versionName` 独立。
-- **统一发布批次：** 仓库根目录 `VERSION`，每个 GitHub Release 同时附带 `WeReadHighlights.js` 与签名 Android APK。
+- **统一发布批次：** 仓库根目录 `VERSION`，每个 GitHub Release 提供 `WeReadHighlights.js`、签名 Android APK 和 macOS 安装包。
 - **源码 PDF 导出：** 在仓库根目录运行 `python3 -m pip install -r tools/requirements.txt`，
   再运行 `python3 tools/export_source_pdf.py`。工具默认读取本目录脚本，输出到根目录的 `WeReadHighlights.pdf`。
 

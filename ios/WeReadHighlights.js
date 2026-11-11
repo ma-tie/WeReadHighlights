@@ -10,7 +10,7 @@
 
 // iOS Scriptable version, independent of Android and repository Release tags.
 // This is separate from the WeRead Skill API's own SKILL_VERSION.
-const APP_VERSION = "0.2.3";
+const APP_VERSION = "0.2.4";
 
 const API_URL = "https://i.weread.qq.com/api/agent/gateway";
 const SKILL_VERSION = "1.0.5";
@@ -24,6 +24,8 @@ const SKILL_VERSION_KEY = "weread_skill_version";
 // ======================================================
 
 const REFRESH_INTERVAL_HOURS = 4;
+const refreshIntervalHours =
+  config.cardOptions?.refreshHours ?? REFRESH_INTERVAL_HOURS;
 
 const API_KEY_NAME = "weread_daily_quote_api_key";
 const USER_VID_KEY = "weread_user_vid";
@@ -195,7 +197,7 @@ function validateRefreshInterval() {
 
   if (
     !allowed.includes(
-      REFRESH_INTERVAL_HOURS
+      refreshIntervalHours
     )
   ) {
     throw new Error(
@@ -224,7 +226,7 @@ function currentSlot() {
   const block =
     Math.floor(
       now.getHours() /
-      REFRESH_INTERVAL_HOURS
+      refreshIntervalHours
     );
 
   return (
@@ -234,7 +236,7 @@ function currentSlot() {
     "-" +
     day +
     "-" +
-    REFRESH_INTERVAL_HOURS +
+    refreshIntervalHours +
     "h-" +
     block
   );
@@ -251,10 +253,10 @@ function nextRefreshTime() {
     (
       Math.floor(
         now.getHours() /
-        REFRESH_INTERVAL_HOURS
+        refreshIntervalHours
       ) + 1
     ) *
-    REFRESH_INTERVAL_HOURS;
+    refreshIntervalHours;
 
   // 支持的周期都能整除 24，
   // 因此 setHours(24, ...) 会自然进入下一天。
@@ -501,7 +503,7 @@ async function fetchQuote() {
   const slot = currentSlot();
 
   // 同一时段直接使用缓存。
-  if (Keychain.contains(CACHE_KEY)) {
+  if (!config.cardOptions?.forceRefresh && Keychain.contains(CACHE_KEY)) {
     try {
       const cached = JSON.parse(
         Keychain.get(CACHE_KEY)
@@ -749,6 +751,17 @@ async function renderQuoteCard(
 ) {
   const layout =
     getWidgetLayout(family);
+  const fontScale = config.cardOptions?.fontScale ?? 1;
+  layout.bodyFontSize = Math.round(layout.bodyFontSize * fontScale);
+  layout.bodyLineHeight = Math.round(layout.bodyLineHeight * fontScale);
+  layout.bodyMaxLines = Math.min(
+    layout.bodyMaxLines,
+    1 + Math.floor(
+      (layout.bodyAreaBottom - layout.bodyAreaTop - layout.bodyFontSize) /
+      layout.bodyLineHeight
+    )
+  );
+  layout.showAuthor = layout.showAuthor && config.cardOptions?.showAuthor !== false;
 
   const W =
     layout.width;
@@ -772,6 +785,10 @@ async function renderQuoteCard(
 
   const author =
     String(data.author || "");
+
+  const chineseFont =
+    config.cardChineseFont ||
+    '"Kaiti SC", "STKaiti", "KaiTi", serif';
 
   const html = [
     "<!DOCTYPE html>",
@@ -801,6 +818,7 @@ async function renderQuoteCard(
     "const layout = " +
       JSON.stringify(layout) +
       ";",
+    "const chineseFont = " + JSON.stringify(chineseFont) + ";",
 
     "// 背景",
     "const bg = ctx.createLinearGradient(0, 0, " + W + ", " + H + ");",
@@ -830,12 +848,12 @@ async function renderQuoteCard(
 
     "// 正文",
     "const quote = " +
-      JSON.stringify(quote) +
+      JSON.stringify(quote).replace(/</g, "\\u003c") +
       ";",
 
     'ctx.fillStyle = "#263A48";',
 
-    "ctx.font = layout.bodyFontSize + 'px \"Kaiti SC\", \"STKaiti\", \"KaiTi\", serif';",
+    "ctx.font = layout.bodyFontSize + 'px ' + chineseFont;",
 
     "let lines = [];",
     'let currentLine = "";',
@@ -904,11 +922,11 @@ async function renderQuoteCard(
 
     "// 来源",
     "const fullTitle = " +
-      JSON.stringify(title) +
+      JSON.stringify(title).replace(/</g, "\\u003c") +
       ";",
 
     "const fullAuthor = " +
-      JSON.stringify(author) +
+      JSON.stringify(author).replace(/</g, "\\u003c") +
       ";",
 
     'let authorDisplay = layout.showAuthor ? fullAuthor : "";',
@@ -940,7 +958,7 @@ async function renderQuoteCard(
     "  authorWidth = ctx.measureText(authorPart).width;",
     "}",
 
-    "ctx.font = layout.sourceTitleFontSize + 'px \"Kaiti SC\", \"STKaiti\", \"KaiTi\", serif';",
+    "ctx.font = layout.sourceTitleFontSize + 'px ' + chineseFont;",
 
     "let titleDisplay = fullTitle;",
     'let source = "《" + titleDisplay + "》";',
@@ -973,7 +991,7 @@ async function renderQuoteCard(
 
     'ctx.fillStyle = "#257EAF";',
 
-    "ctx.font = layout.sourceTitleFontSize + 'px \"Kaiti SC\", \"STKaiti\", \"KaiTi\", serif';",
+    "ctx.font = layout.sourceTitleFontSize + 'px ' + chineseFont;",
 
     "ctx.fillText(" +
       "source, " +

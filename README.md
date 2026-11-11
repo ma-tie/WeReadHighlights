@@ -11,14 +11,14 @@
 [![Latest Release](https://img.shields.io/github/v/release/ma-tie/WeReadHighlights?label=Release)](https://github.com/ma-tie/WeReadHighlights/releases/latest)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-**[下载最新版本](https://github.com/ma-tie/WeReadHighlights/releases/latest)** · [iOS 安装指南](#ios-安装) · [Android 安装指南](#android-安装) 
+**[下载最新版本](https://github.com/ma-tie/WeReadHighlights/releases/latest)** · [iOS 安装指南](#ios-安装) · [Mac 安装指南](#mac-安装) · [Android 安装指南](#android-安装)
 </div>
 
 ---
 
 ## 项目介绍
 
-WeReadHighlights 是一个开源的**微信读书个人划线桌面小组件**，支持 iOS 和 Android。
+WeReadHighlights 是一个开源的**微信读书个人划线桌面小组件**，支持 iOS、Android 和 macOS。Mac 可以独立运行，也可以通过接续功能添加 iPhone 上的 Scriptable 小组件。
 
 它会从你的微信读书划线中随机挑选一句，展示在主屏幕上。默认按 **4 小时**划分刷新时段，支持调整周期；点击小组件可尝试返回对应书籍或划线位置。
 
@@ -46,20 +46,21 @@ WeReadHighlights 是一个开源的**微信读书个人划线桌面小组件**�
 
 ## 下载与安装
 
-从 **[GitHub Releases](https://github.com/ma-tie/WeReadHighlights/releases/latest)** 下载适合自己平台的文件。一个 Release 同时提供 iOS 脚本和 Android 正式签名 APK。
+从 **[GitHub Releases](https://github.com/ma-tie/WeReadHighlights/releases/latest)** 下载适合自己平台的文件。
 
 | 平台 | 下载文件 | 适用方式 |
 | --- | --- | --- |
 | **iOS** | `WeReadHighlights.js` | 在 Scriptable 中导入并添加小组件 |
 | **Android** | `WeReadHighlights-Android-v<Android版本>.apk` | 安装独立 App 后添加小组件 |
+| **macOS** | `WeReadHighlights-macOS-v<发布版本>.zip` | 安装 Übersicht 后解压并打开 `Install.command` |
 
 ### 通用准备：微信读书 API Key
 
-两个平台都需要你自己的微信读书 Skill API Key：
+三个平台都需要你自己的微信读书 Skill API Key：
 
 1. 打开 **[微信读书 Skills 页面](https://weread.qq.com/r/weread-skills)**；
 2. 获取以 `wrk-` 开头的 API Key；
-3. 首次运行 iOS 脚本或 Android App 时输入。
+3. 首次运行 iOS 脚本或 Android App 时输入。Mac 用户可在卡片右上角的齿轮中配置。
 
 API Key 是个人访问凭据。**请勿将其写入公开仓库、发送给他人或放在截图中。** 项目直接请求微信读书 Skill Gateway，不需要自建服务端。
 
@@ -87,6 +88,21 @@ const REFRESH_INTERVAL_HOURS = 4;
 ```
 
 支持 `1 / 2 / 3 / 4 / 6 / 8 / 12 / 24` 小时。该设置决定随机划线的**缓存时段**；实际小组件更新仍由 iOS 调度，不保证整点刷新。
+
+### Mac 安装
+
+**独立运行**：安装 [Übersicht](https://tracesof.net/uebersicht/)，解压 Mac 下载包，双击 `Install.command`。卡片出现后，点右上角齿轮配置 API Key。参见 [Mac 安装说明](macos/uebersicht/README.md)。
+
+#### 使用 iPhone 小组件
+
+**要求**：macOS Sonoma 14 或更新版本、iOS 17 或更新版本。两台设备须登录同一 Apple 账户，且 iPhone 须靠近 Mac 或与 Mac 连接到同一 Wi-Fi 网络。详见 [Apple 的 Mac 小组件指南](https://support.apple.com/zh-cn/guide/mac-help/mchl52be5da5/mac)。
+
+1. 在 iPhone 上完成 [iOS 安装](#ios-安装)，确认 Scriptable 小组件已显示划线。
+2. 在 Mac 上打开 **系统设置 → 桌面与程序坞 → 小组件**，打开 **使用 iPhone 小组件**。
+3. 在 Mac 桌面空白处按住 Control 键点按，选择 **编辑小组件**，搜索 **Scriptable**，添加来自 iPhone 的小组件。
+4. 在 Mac 上编辑刚添加的小组件，将 **Script** 设为 `WeReadHighlights`。如果没有看到脚本，先确认 iPhone 上的 Scriptable 已经保存并运行过它。
+
+脚本和微信读书 API Key 都在 iPhone 上配置。Mac 上点击小组件时，系统可能要求在 iPhone 上继续操作。
 
 ### Android 安装
 
@@ -183,7 +199,8 @@ WeReadHighlights/
 │   └── README.md
 ├── android/                      # Android / Kotlin
 │   └── README.md
-├── .github/workflows/            # Debug APK 和双平台签名发布
+├── macos/uebersicht/              # macOS 桌面组件和安装脚本
+├── .github/workflows/             # Debug APK 和跨平台发布
 ├── VERSION                       # GitHub Release 发布批次
 ├── docs/images/                  # iOS 截图与演示资源
 ├── tools/                        # iOS 源码 PDF 导出等维护工具
@@ -198,7 +215,7 @@ WeReadHighlights/
 
 ## 版本与发布
 
-本仓库将 **GitHub Release** 作为双平台的统一下载入口，但**平台版本号独立维护**：
+本仓库通过 **GitHub Release** 提供 iOS、Android 和 macOS 下载。iOS 和 Android 独立维护应用版本，Mac 安装包使用发布批次号：
 
 | 版本类型 | 位置 | 何时更新 |
 | --- | --- | --- |
@@ -206,9 +223,9 @@ WeReadHighlights/
 | iOS 脚本版本 | [`ios/WeReadHighlights.js`](ios/WeReadHighlights.js) 中的 `APP_VERSION` | iOS 脚本发生变化时 |
 | Android 应用版本 | `android/app/build.gradle.kts` 中的 `versionName` / `versionCode` | Android 应用发生变化时，两个值都更新 |
 
-例如，GitHub Release **v0.2.4** 可以包含 **iOS 0.2.4 + Android 0.2.3**。即使某个平台没有更新，Release 仍会附带它的当前稳定文件，便于用户在同一页面下载。
+例如，GitHub Release **v0.2.4** 可以包含 **iOS 0.2.4、Android 0.2.3 和 macOS 安装包 0.2.4**。
 
-发布工作流会校验版本格式、构建并验证 Android 签名、附带 iOS 脚本与校验文件。正式发布由匹配 `VERSION` 的标签触发，或由特定的发布合并提交触发。
+发布工作流会校验版本格式、构建并验证 Android 签名、打包 Mac ZIP，并为三个下载附件生成 SHA-256 校验和。正式发布由匹配 `VERSION` 的标签触发，或由特定的发布合并提交触发。
 
 **发行说明及历史版本：** [GitHub Releases](https://github.com/ma-tie/WeReadHighlights/releases)。
 
