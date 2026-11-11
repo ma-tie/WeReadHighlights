@@ -10,7 +10,7 @@
 
 // iOS Scriptable version, independent of Android and repository Release tags.
 // This is separate from the WeRead Skill API's own SKILL_VERSION.
-const APP_VERSION = "0.2.5";
+const APP_VERSION = "0.2.6";
 
 const API_URL = "https://i.weread.qq.com/api/agent/gateway";
 const SKILL_VERSION = "1.0.5";
@@ -799,7 +799,7 @@ async function renderQuoteCard(
   const theme = { ...themeDefaults };
   for (const key of Object.keys(theme)) {
     const value = config.cardOptions?.theme?.[key];
-    if (/^#[0-9a-f]{6}$/i.test(value || "")) theme[key] = value;
+    if (value === "transparent" || /^#[0-9a-f]{6}$/i.test(value || "")) theme[key] = value;
   }
   const backgroundImage = config.cardOptions?.theme?.backgroundImage;
   theme.backgroundImage = /^data:image\/(png|jpeg|webp);base64,[a-z0-9+/=]+$/i.test(backgroundImage || "") ? backgroundImage : null;
@@ -836,6 +836,7 @@ async function renderQuoteCard(
     "<script>",
     "window.cardReady = (async () => {",
     "const theme = " + JSON.stringify(theme) + ";",
+    'const tint = (color, alpha) => color === "transparent" ? color : color + alpha;',
     'const canvas = document.getElementById("card");',
     'const ctx = canvas.getContext("2d");',
     'ctx.scale(' + RENDER_SCALE + ', ' + RENDER_SCALE + ');',
@@ -876,7 +877,7 @@ async function renderQuoteCard(
     "ctx.fill();",
 
     "// 背景大引号",
-    'ctx.fillStyle = theme.quoteMark + "1a";',
+    'ctx.fillStyle = tint(theme.quoteMark, "1a");',
     'ctx.font = layout.quoteMarkSize + "px Georgia, serif";',
     'ctx.fillText("“", layout.quoteMarkX, layout.quoteMarkY);',
 
@@ -948,7 +949,7 @@ async function renderQuoteCard(
     "}",
 
     "// 分割线",
-    'ctx.fillStyle = theme.divider + "2e";',
+    'ctx.fillStyle = tint(theme.divider, "2e");',
     "ctx.fillRect(" +
       "layout.dividerX, " +
       "layout.dividerY, " +
@@ -1012,7 +1013,7 @@ async function renderQuoteCard(
     'ctx.textAlign = "right";',
 
     "if (authorPart) {",
-    '  ctx.fillStyle = theme.author + "6e";',
+    '  ctx.fillStyle = tint(theme.author, "6e");',
     '  ctx.font = ' +
       'layout.sourceAuthorFontSize + ' +
       '"px -apple-system, BlinkMacSystemFont, sans-serif";',

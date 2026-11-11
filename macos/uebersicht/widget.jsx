@@ -52,7 +52,7 @@ try {
   const saved = JSON.parse(localStorage.getItem(themeKey));
   if (saved) {
     for (const key of Object.keys(themeLabels)) {
-      if (/^#[0-9a-f]{6}$/i.test(saved[key])) theme[key] = saved[key];
+      if (saved[key] === "transparent" || /^#[0-9a-f]{6}$/i.test(saved[key])) theme[key] = saved[key];
     }
     if (/^data:image\/(jpeg|png|webp);base64,[a-z0-9+/=]+$/i.test(saved.backgroundImage || "")) theme.backgroundImage = saved.backgroundImage;
     for (const family of Object.keys(sizes)) {
@@ -396,10 +396,19 @@ export const render = ({ image, link, demo, message, family, themeMessage }, dis
             <summary>颜色与背景</summary>
             <div style={{ display: "grid", gap: 8, paddingTop: 8 }}>
               {Object.entries(themeLabels).map(([key, label]) => (
-                <label key={key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  {label} <input type="color" aria-label={label + "颜色"} value={theme[key]}
-                    onChange={event => changeTheme({ [key]: event.target.value }, dispatch)} />
-                </label>
+                <div key={key} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <label style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    {label} <input type="color" aria-label={label + "颜色"}
+                      value={theme[key] === "transparent" ? defaultTheme[key] : theme[key]}
+                      disabled={theme[key] === "transparent"}
+                      onChange={event => changeTheme({ [key]: event.target.value }, dispatch)} />
+                  </label>
+                  <label>
+                    <input type="checkbox" aria-label={label + "透明"} checked={theme[key] === "transparent"}
+                      onChange={event => changeTheme({ [key]: event.target.checked ? "transparent" : defaultTheme[key] }, dispatch)} />
+                    透明
+                  </label>
+                </div>
               ))}
               <button type="button" onClick={() => selectBackground(dispatch)}>选择背景图片…</button>
               {theme.backgroundImage && (
