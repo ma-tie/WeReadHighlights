@@ -52,7 +52,7 @@ export const className = `
     right: 8px;
     opacity: 0;
   }
-  &:hover .settings, &:focus-within .settings,
+  &:hover .settings, .settings:has(:focus-visible),
   .settings[open], .settings[data-setup="true"] {
     opacity: 1;
   }
