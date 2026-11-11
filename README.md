@@ -18,7 +18,7 @@
 
 ## 项目介绍
 
-WeReadHighlights 是一个开源的**微信读书个人划线桌面小组件**，支持 iOS、Android 和 macOS。Mac 可以独立运行，也可以通过接续功能添加 iPhone 上的 Scriptable 小组件。
+WeReadHighlights 是一个开源的**微信读书个人划线桌面小组件**，支持 iOS、Android 和 macOS。Mac 版使用 Übersicht 独立运行，无须 iPhone。
 
 它会从你的微信读书划线中随机挑选一句，展示在主屏幕上。默认按 **4 小时**划分刷新时段，支持调整周期；点击小组件可尝试返回对应书籍或划线位置。
 
@@ -50,7 +50,7 @@ WeReadHighlights 是一个开源的**微信读书个人划线桌面小组件**�
 
 | 平台 | 下载文件 | 适用方式 |
 | --- | --- | --- |
-| **iOS** | `WeReadHighlights.js` | 在 Scriptable 中导入并添加小组件 |
+| **iOS** | `WeReadHighlights-iOS-v<iOS版本>.js` | 在 Scriptable 中导入并添加小组件 |
 | **Android** | `WeReadHighlights-Android-v<Android版本>.apk` | 安装独立 App 后添加小组件 |
 | **macOS** | `WeReadHighlights-macOS-v<发布版本>.zip` | 安装 Übersicht 后解压并打开 `Install.command` |
 
@@ -69,7 +69,7 @@ API Key 是个人访问凭据。**请勿将其写入公开仓库、发送给他�
 **要求：** iPhone、[Scriptable](https://apps.apple.com/us/app/scriptable/id1405459188) 和微信读书。
 
 1. 安装并打开 Scriptable。
-2. 从 [Releases](https://github.com/ma-tie/WeReadHighlights/releases/latest) 下载 `WeReadHighlights.js`，将脚本内容导入 Scriptable，保存为 `WeReadHighlights`。
+2. 从 [Releases](https://github.com/ma-tie/WeReadHighlights/releases/latest) 下载 `WeReadHighlights-iOS-v<iOS版本>.js`，将脚本内容导入 Scriptable，保存为 `WeReadHighlights`。
 3. 在 Scriptable 中**手动运行一次**，根据提示填写 API Key。脚本会读取划线并显示预览；凭据保存在本机 Keychain，之后不必重复填写。
 4. 在 iPhone 主屏幕长按空白区域 → **添加小组件** → 搜索 **Scriptable** → 选择 Small、Medium 或 Large。
 5. 长按刚添加的小组件 → **编辑小组件**，将 **Script** 设为 `WeReadHighlights`，**When Interacting** 保持 **Run Script**。
@@ -91,18 +91,16 @@ const REFRESH_INTERVAL_HOURS = 4;
 
 ### Mac 安装
 
-**独立运行**：安装 [Übersicht](https://tracesof.net/uebersicht/)，解压 Mac 下载包，双击 `Install.command`。卡片出现后，点右上角齿轮配置 API Key。参见 [Mac 安装说明](macos/uebersicht/README.md)。
+**要求：** Mac 和 [Übersicht](https://tracesof.net/uebersicht/)，无须 iPhone 或 Xcode。
 
-#### 使用 iPhone 小组件
+1. 下载 Übersicht，放入「应用程序」文件夹。
+2. 从 [Releases](https://github.com/ma-tie/WeReadHighlights/releases/latest) 下载 `WeReadHighlights-macOS-v<发布版本>.zip` 并解压。
+3. 双击解压目录里的 **`Install.command`**，自动安装组件并启动 Übersicht。
+4. 桌面卡片出现后，点右上角 **齿轮 → 配置 API Key**，输入自己的 `wrk-` 密钥；若系统询问钥匙串访问权限，允许读取。
 
-**要求**：macOS Sonoma 14 或更新版本、iOS 17 或更新版本。两台设备须登录同一 Apple 账户，且 iPhone 须靠近 Mac 或与 Mac 连接到同一 Wi-Fi 网络。详见 [Apple 的 Mac 小组件指南](https://support.apple.com/zh-cn/guide/mac-help/mchl52be5da5/mac)。
+齿轮里可以调整小 / 中 / 大尺寸、字体、字号、刷新周期和作者显示，也可以手动换一句。点击卡片会打开微信读书网页并尝试定位划线。使用时保持 Übersicht 运行。
 
-1. 在 iPhone 上完成 [iOS 安装](#ios-安装)，确认 Scriptable 小组件已显示划线。
-2. 在 Mac 上打开 **系统设置 → 桌面与程序坞 → 小组件**，打开 **使用 iPhone 小组件**。
-3. 在 Mac 桌面空白处按住 Control 键点按，选择 **编辑小组件**，搜索 **Scriptable**，添加来自 iPhone 的小组件。
-4. 在 Mac 上编辑刚添加的小组件，将 **Script** 设为 `WeReadHighlights`。如果没有看到脚本，先确认 iPhone 上的 Scriptable 已经保存并运行过它。
-
-脚本和微信读书 API Key 都在 iPhone 上配置。Mac 上点击小组件时，系统可能要求在 iPhone 上继续操作。
+详细设置见 [Mac 使用说明](macos/uebersicht/README.md)。另有可选的 [通过 iPhone 接续显示小组件](macos/iphone-widgets.md) 方式。
 
 ### Android 安装
 

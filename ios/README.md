@@ -5,7 +5,7 @@ iOS 版本使用 [Scriptable](https://apps.apple.com/us/app/scriptable/id1405459
 
 ## 安装使用
 
-1. 在 [GitHub Releases](https://github.com/ma-tie/WeReadHighlights/releases/latest) 下载 **`WeReadHighlights.js`**。
+1. 在 [GitHub Releases](https://github.com/ma-tie/WeReadHighlights/releases/latest) 下载 **`WeReadHighlights-iOS-v<iOS版本>.js`**。
 2. 安装 Scriptable，将脚本导入或复制到新建的脚本，命名为 `WeReadHighlights`。
 3. 在 Scriptable 内手动运行一次，输入微信读书 [Skill API Key](https://weread.qq.com/r/weread-skills)（以 `wrk-` 开头）。
 4. 在 iPhone 桌面添加 Small / Medium / Large 尺寸的 Scriptable 小组件。
@@ -32,9 +32,9 @@ API Key 和 `userVid` 保存在 Scriptable 可访问的 Keychain 中；
 
 - **源码：** `ios/WeReadHighlights.js`
 - **iOS 版本号：** 脚本中的 `APP_VERSION`，与 Android `versionName` 独立。
-- **统一发布批次：** 仓库根目录 `VERSION`，每个 GitHub Release 提供 `WeReadHighlights.js`、签名 Android APK 和 macOS 安装包。
+- **统一发布批次：** 仓库根目录 `VERSION`，每个 GitHub Release 提供 `WeReadHighlights-iOS-v<iOS版本>.js`、签名 Android APK 和 macOS 安装包。
 - **源码 PDF 导出：** 在仓库根目录运行 `python3 -m pip install -r tools/requirements.txt`，
   再运行 `python3 tools/export_source_pdf.py`。工具默认读取本目录脚本，输出到根目录的 `WeReadHighlights.pdf`。
 
 **注意：** 移动仓库内文件路径不会改变已经导入 Scriptable 的本地脚本；
-历史 Release `v0.2.3` 中的附件名称和下载地址也保持不变。
+历史 Release（如 `v0.2.4`）的脚本附件仍叫 `WeReadHighlights.js`；后续发布的脚本文件名会带上 `APP_VERSION`。
